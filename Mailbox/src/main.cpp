@@ -14,6 +14,7 @@ const char * labels[] = {
    "d",
    "e",
    "li",
+    "",
 };
 
 int main( int argc, char ** argv ) {
@@ -24,14 +25,14 @@ int main( int argc, char ** argv ) {
   }
   if ( 1 == atoi( argv[1] ) ) {
     printf("- Sender mode \n");
-    int i ;
+    int i = 0;
     MailBox m;
-    i = 0;
     while ( strlen( labels[ i ] ) ) {
-        m.send( 2023, (void *) labels[ i ], strlen( labels[ i ] ) );  // Send a message with 2023 type
-        printf("Label: %s\n", labels[ i ] );
-        i++;
-    }
+      m.send( 2023, (void *) labels[ i ], strlen( labels[ i ] ) );  // Send a message with 2023 type
+      printf("Label: %s\n", labels[ i ] );
+      i++;
+   }
+
   } else if ( 2 == atoi( argv[1] ) ) {
     printf("- Receiver mode \n");
     struct msgbuf {
@@ -44,8 +45,8 @@ int main( int argc, char ** argv ) {
 
     st = m.recv( 2023, (void *) &A, sizeof( A ) );  // Receives a message with 2023 type
     while ( st > 0 ) {
-       printf("Label: %s\n", A.data );
-       st = m.recv( 2023, (void *) &A, sizeof( A ) );
+        printf("Label: %s\n", A.data );
+        st = m.recv( 2023, (void *) &A, sizeof( A ) );
     }
   } else {
     printf("Usage: %s <message>\n", argv[0]);

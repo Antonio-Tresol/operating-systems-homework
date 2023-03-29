@@ -84,7 +84,7 @@ int MailBox::send( long type, void * buffer, int numBytes ) {
    // The second argument is a pointer to the message buffer containing the message to send
    // The third argument is the size of the message data in bytes
    // The fourth argument is a set of flags that control the behavior of msgsnd (0 indicates no flags are set)
-   st = msgsnd(this->id, &m, numBytes, 0);
+   st = msgsnd(this->id, &m, sizeof(m), 0);
 
    return st;
 }
@@ -103,17 +103,18 @@ int MailBox::recv(long type, void* buffer, int capacity) {
         char data[MAXDATA];  // char array for simplicity
         // user can define other fields
     } m;
+    m.type = type;
     // Call msgrcv system call to receive a message from the message queue.
     // Parameters:
     // - this->id: ID of the message queue to receive from (obtained from msgget in the constructor)
-    // - &m: Pointer to the message buffer where the received message will be stored
-    // - MAXDATA: Maximum size in bytes of the message data
+    // - &buffer: A pointer to the message buffer to store the received message
+    // - capacity: The maximum size of the message data in bytes
     // - type: The type of message to receive (0 to receive any type of message)
     // - 0: The flags parameter, which can be used to specify additional options. In this case, we use no flags.
-    st = msgrcv(this->id, &m, MAXDATA, type, 0);
+    st = msgrcv(this->id, (struct msgbuf *) buffer, capacity, m.type, 0);
 
     // Copy the message data from the message buffer (m) to the user-provided buffer (buffer)
-    memcpy(buffer, (void*)m.data, capacity);
+    //memcpy(buffer, (void*)m.data, capacity);
 
     return st;
 }
