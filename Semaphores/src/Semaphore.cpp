@@ -1,17 +1,13 @@
 /**
-
 C++ class to encapsulate Unix semaphore intrinsic structures and system calls
 Author: Operating systems (Francisco Arroyo)
 Version: 2023/Mar/15
 Ref.: https://en.wikipedia.org/wiki/Semaphore_(programming)
 **/
-
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
-
 #include "Semaphore.hpp"
-
 /**
 
 Union definition to set an initial value to semaphore
@@ -25,9 +21,9 @@ union semun {
 };
 
 /**
-
 Class constructor
-Must call "semget" to create a semaphore array and "semctl" to define a initial value
+Must call "semget" to create a semaphore array and "semctl" to define a 
+initial value
 semkey is your student id number: 0xB80874 (to represent as hexadecimal value)
 nsems = 1
 semflg: IPC_CREAT | 0600
@@ -44,34 +40,41 @@ Semaphore::Semaphore( int initialValue ) {
 }
 
 /**
-
 Class destructor
 Must call semctl
 **/
 Semaphore::~Semaphore() {
+  // Call semctl to destroy semaphore array
+  // the first argument is the semaphore identifier
+  // the second argument is the semaphore number
+  // the third argument is the command to be performed
+  // the fourth argument is a pointer to a semun structure,
   semctl(this->id, 0, IPC_RMID, 0);
 }
-
 /**
-
 Signal method
 Need to call semop to add one to semaphore
 **/
 int Semaphore::Signal() {
   int st = -1;
+  // struct sembuf is defined in sys/sem.h
+  // it is used to pass information to the semop system call
+  // it has three fields:
+  // sem_num: the semaphore number
+  // sem_op: the operation to be performed
+  // sem_flg: the operation flags
   struct sembuf z;
-
   z.sem_num = 0;
   z.sem_op = 1;
   z.sem_flg = 0;
-
   // call semop
+  // the first argument is the semaphore identifier
+  // the second argument is a pointer to a sembuf structure
+  // the third argument is the number of sembuf structures
   st = semop(this->id, &z, 1);
   return st;
 }
-
 /**
-
 Wait method
 Need to call semop to subtract one from the semaphore
 **/

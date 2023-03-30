@@ -28,16 +28,19 @@
  *
  **/
 ShM::ShM( int size ) {
-   int st;
-
-   st = shmget( KEY, size, IPC_CREAT | 0600 );
-   if ( -1 == st ) {
-      perror( "ShM::ShM" );
-      exit( 1 );
-   }
-
-   this->id = st;
-
+  int st; // status
+  // The first argument is the key to identify the shared memory segment.
+  // The second argument is the size of the shared memory segment.
+  // The third argument is a set of flags that specify the permissions
+  // and options for the shared memory segment.
+  // Here, we are creating a new shared memory segment with read/write 
+  // permissions for the owner, and no permissions for other users.
+  st = shmget( KEY, size, IPC_CREAT | 0600 ); // 0600 = 110 000 000
+  if ( -1 == st ) {
+  perror( "ShM::ShM" );
+  exit( 1 );
+  }
+  this->id = st;
 }
 
 
@@ -48,13 +51,18 @@ ShM::ShM( int size ) {
  *
  **/
 ShM::~ShM() {
-   int st;
-
-   st = shmctl( this->id, IPC_RMID, NULL );
-   if ( -1 == st ) {
-      perror( "ShM::~ShM" );
-      exit( 2 );
-   }
+  int st;
+  // call shmctl to destroy this shared memory segment
+  // the first argument is the shared memory identifier
+  // the second argument is the command to be performed
+  // the third argument is a pointer to a shmid_ds structure,
+  // which is used to return information about the shared memory segment.
+  // when the IPC_RMID flag is specified, this argument is ignored.
+  st = shmctl( this->id, IPC_RMID, NULL );
+  if ( -1 == st ) {
+  perror( "ShM::~ShM" );
+  exit( 2 );
+  }
 }
 
 
@@ -65,17 +73,15 @@ ShM::~ShM() {
  *
  **/
 void * ShM::attach() {
+  
+  this->area = shmat( this->id, NULL, 0 );
+  if ( (void *) -1 == this->area ) {
+  perror( "ShM::attach" );
+  exit( 2 );
+  }
 
-   this->area = shmat( this->id, NULL, 0 );
-   if ( (void *) -1 == this->area ) {
-      perror( "ShM::attach" );
-      exit( 2 );
-   }
-
-   return this->area;
-
+  return this->area;
 }
-
 
 /**
  * Detach method
@@ -84,14 +90,11 @@ void * ShM::attach() {
  *
  **/
 int ShM::detach() {
-   int st = -1;
-
-   st = shmdt( this->area );
-   if ( -1 == st ) {
-      perror( "ShM::detach" );
-      exit( 3 );
-   }
-
-   return st;
-
+  int st = -1;
+  st = shmdt( this->area );
+  if ( -1 == st ) {
+  perror( "ShM::detach" );
+  exit( 3 );
+  }
+  return st;
 }

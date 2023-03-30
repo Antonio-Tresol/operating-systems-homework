@@ -5,15 +5,14 @@
   * Ref.: https://en.wikipedia.org/wiki/Shared_memory
   *
  **/
-
 class ShM {
-   public:
-      ShM( int = 0 );	// Parameter represent segment size
-      ~ShM();
-      void * attach();
-      int detach();
+  public:
+    ShM( int = 0 );	// Parameter represent segment size
+    ~ShM();
+    void * attach();
+    int detach();
 
-   private:
-      int id;		// shared memory indentifier
-      void * area;	// pointer to shared memory area
+  private:
+    int id;		// shared memory indentifier
+    void * area;	// pointer to shared memory area
 };

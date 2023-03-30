@@ -5,6 +5,7 @@
 #include <sys/msg.h>
 #include "MailBox.hpp"
 #include <stdlib.h>
+#include <unistd.h>
 #define MAXDATA 1024
 
 const char * labels[] = {
@@ -32,6 +33,7 @@ int main( int argc, char ** argv ) {
       printf("Label: %s\n", labels[ i ] );
       i++;
    }
+   sleep( 1 );
 
   } else if ( 2 == atoi( argv[1] ) ) {
     printf("- Receiver mode \n");

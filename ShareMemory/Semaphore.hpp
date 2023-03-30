@@ -7,12 +7,12 @@
  **/
 
 class Semaphore {
-   public:
-      Semaphore( int = 0 );	// Parameter is initial value
-      ~Semaphore();
-      int Signal();	// Is the same as V method in Dijkstra definition
-      int Wait();	// Is the same as P method in Dijkstra definition
+  public:
+    Semaphore( int = 0 );	// Parameter is initial value
+    ~Semaphore();
+    int Signal();	// Is the same as V method in Dijkstra definition
+    int Wait();	// Is the same as P method in Dijkstra definition
 
-   private:
-      int id;		// Semaphore indentifier
+  private:
+    int id;		// Semaphore indentifier
 };
