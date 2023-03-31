@@ -14,8 +14,8 @@ const char * labels[] = {
    "c",
    "d",
    "e",
-   "li",
-    "",
+   "l",
+   ""
 };
 
 int main( int argc, char ** argv ) {
