@@ -29,7 +29,7 @@ int serialTest() {
 }
 
 int main() {
-   Semaphore s(0); // Need to start on zero
+   Semaphore s(0,10); // Need to start on zero
 
    serialTest();
 

@@ -1,0 +1,139 @@
+Declare potato:
+  int value
+  int endedCount
+  int round
+  int winner
+end potato
+
+Declare privateMemory:
+  int procesID
+  int playerID
+  int nextPlayer
+  boolean isActive
+  int roundReached
+end privateMemory
+
+procedure main():
+  // cantidad de jugadores / procesos
+  int n := input("Enter the number of players: ")
+  int r := input("Enter the sense of the rotation: ")
+  int v := input("Enter the initial value of the potato: ")
+  // crear procesos
+  int processId := 0
+  // crear memoria compartida para tener la papa
+  potato p := createShareMemory()
+  // inicializar la papa
+  setPotato(p, v)
+  // crear semaforo para controlar memoria compartida
+  Semaphores canAccessPotato := createSemaphoreArray(n,0)
+  Semaphore finished := createSemaphore(0);
+  // the first player can access the potato it will start
+  signal(canAccessPotato[0]) 
+  // crear memoria privada 
+  privateMemory mem := createPrivateMemory();
+  // crear los jugadores
+  int i := 0;
+  while i < n:
+    processId := createProcess() // fork()
+    if processId = 0:
+      break
+    end if
+    i := i + 1
+  end while 
+  if (processID > 0):
+    wait(finished)
+    // el proceso padre imprime el ganador
+    reportWinner(p)
+    closeSemaphoreArray(canAccessPotato)
+    closeSemaphore(finished)
+    closeShareMemory(p)
+  else:
+    // preparar el jugador
+    setPlayer(mem, i, n)
+    // jugar
+    potatoGame(p, mem, canAccessPotato, finished)
+    // reportar sus resultados
+    reportPlayer(mem)
+  end if
+
+end procedure
+
+procedure setPotato(potato p, int v):
+  p.value := v
+  p.endedCount := 0
+  p.round := 0
+  p.winner := -1
+end procedure
+
+procedure setPlayer(privateMemory mem, int i, int n):
+  // darle un id a cada jugador
+  // el id del jugador lo van a usar para saber que semaforo usar
+  mem.playerID := n
+  // definir el siguiente jugador
+  mem.nextPlayer := mem.playerID + r // el sentido de la rotacion determina que
+  // a que semaforo hacer signal
+  if mem.nextPlayer < 0:
+    mem.nextPlayer := n - 1
+  else if mem.nextPlayer > n:
+    mem.nextPlayer := 0
+  end if
+  mem.isActive := true
+  mem.roundReached := -1
+end procedure
+
+procedure play(potato p): //
+  // si el valor de la papa es impar
+  if p.value % 2 != 0: // if 1 = p.value BitAnd 1
+    p.value := p.value * 3 + 1
+  else:
+    p.value := p.value / 2 // p.value := ShiftRight p.value, 1 
+  end if
+end procedure
+
+procedure potatoGame(potato p, privateMemory mem, Semaphores canAccessPotato,
+  Semaphore finished):
+  while true:
+    wait(canAccessPotato[mem.playerID]) // esperar a que sea su turno
+    if p.value = -1: // si el juego termino entonces:
+      // aumentar el contador de jugadores que terminaron
+      p.endedCount := p.endedCount + 1
+      if p.endedCount = n: // si todos los jugadores terminaron entonces:
+        // avisar al proceso padre que el juego termino
+        signal(finished)
+        break
+      end if
+      // si no todos los jugadores terminaron entonces: pasar la papa
+      signal(canAccessPotato[mem.nextPlayer])
+      break
+    else if mem.isActive: // si el jugador esta activo entonces:
+      play(p) // jugar
+      if p.value = 1: // si la papa exploto entonces:
+        // jugador se retira
+        mem.isActive := false  
+        mem.roundReached := p.round
+        // aumenta el contador de rondas de la papa
+        p.round := p.round + 1
+        if p.round = n: // si la papa exploto n veces entonces:
+          // el juego termino y el jugador gano
+          p.value := -1 // poner el valor en -1 y con ello avisa a los demas
+          p.winner := mem.playerID // escribir su id en la papa
+        end if
+        signal(canAccessPotato[mem.nextPlayer]) // pasar la papa
+      end if
+    else:
+      // si el jugador no esta activo:
+      signal(canAccessPotato[mem.nextPlayer]) // pasar la papa
+    end if
+  end while
+end procedure
+
+procedure reportPlayer(privateMemory mem):
+  print "Player " + mem.playerID + " has exited the game (round reached" + 
+    mem.roundReached + ")"
+end procedure
+
+procedure reportWinner(potato p):
+  print "The winner is: " + p.winner
+end procedure
+
+

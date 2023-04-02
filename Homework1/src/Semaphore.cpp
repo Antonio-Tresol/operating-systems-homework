@@ -40,12 +40,10 @@ Semaphore::Semaphore( int initialValue ) {
   semctl(this->id, 0, SETVAL, x);
 }
 
-Semaphore::Semaphore( int initialValue, int semkey ) {
+Semaphore::Semaphore( int initialValue, int semId ) {
   union semun x;
-
   // Call semget to construct semaphore array
-  this->id = semget(semkey, 1, IPC_CREAT | 0600);
-
+  this->id = semget(semId, 1, IPC_CREAT | 0600);
   x.val = initialValue;
   // Call semctl to set initial value
   semctl(this->id, 0, SETVAL, x);
@@ -56,12 +54,16 @@ Class destructor
 Must call semctl
 **/
 Semaphore::~Semaphore() {
+  int st = -1;
   // Call semctl to destroy semaphore array
   // the first argument is the semaphore identifier
   // the second argument is the semaphore number
   // the third argument is the command to be performed
   // the fourth argument is a pointer to a semun structure,
   semctl(this->id, 0, IPC_RMID, 0);
+  if (st == -1) {
+    perror("Semaphore::~Semaphore");
+  }
 }
 /**
 Signal method
@@ -85,7 +87,7 @@ int Semaphore::Signal() {
   // the third argument is the number of sembuf structures
   st = semop(this->id, &z, 1);
   if (st == -1) {
-    perror("Signal::semop");
+    perror("Semaphore::Signal");
   }
   return st;
 }
@@ -102,7 +104,7 @@ int Semaphore::Wait() {
   // call semop
   st = semop(this->id, &z, 1);
   if (st == -1) {
-    perror("Wait::semop");
+    perror("Semaphore::Wait");
   }
   return st;
 }
