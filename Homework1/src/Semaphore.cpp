@@ -3,76 +3,85 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <stdio.h>
+#include <errno.h>
 #include "Semaphore.hpp"
+
 /**
-Union definition to set an initial value to semaphore
-Calling program must define this structure
+*@brief Union definition to set an initial value to semaphore
 */
-union semun {
-  int val; /* Value for SETVAL */
-  struct semid_ds buf; /* Buffer for IPC_STAT, IPC_SET */
-  unsigned short array; /* Array for GETALL, SETALL */ // NOLINT
-  struct seminfo __buf; /* Buffer for IPC_INFO (Linux-specific) */ // NOLINT
+union semun {                   /* Used in calls to semctl() */
+    int                 val;   /* Value for SETVAL */
+    struct semid_ds *   buf;  /* Buffer for IPC_STAT, IPC_SET */
+    unsigned short *    array; /* Array for GETALL, SETALL */
+#if defined(__linux__)
+    struct seminfo *    __buf; /* Buffer for IPC_INFO (linux only)*/
+#endif
 };
 
-/**
-Class constructor
-Must call "semget" to create a semaphore array and "semctl" to define a 
-initial value
-semkey is your student id number: 0xB80874 (to represent as hexadecimal value)
-nsems = 1
-semflg: IPC_CREAT | 0600
-**/
-Semaphore::Semaphore(int initialValue) {
-  union semun x;
-  // Call semget to construct semaphore array
-  this->id = semget(0xB80874, 1, IPC_CREAT | 0600);
-  x.val = initialValue;
-  // Call semctl to set initial value
-  semctl(this->id, 0, SETVAL, x);
-}
+bool RetryOnEINTR = true;
 
-Semaphore::Semaphore(int initialValue, int semId) {
+Semaphore::Semaphore(int initialValue, int semId, int nsems) {
+  // semun struct to use with semctl
   union semun x;
-  // Call semget to construct semaphore array
-  this->id = semget(semId, 1, IPC_CREAT | 0600);
-  x.val = initialValue;
-  // Call semctl to set initial value
-  semctl(this->id, 0, SETVAL, x);
-}
-/**
-Class destructor
-Must call semctl
-**/
-Semaphore::~Semaphore() {
   int st = -1;
-  // Call semctl to destroy semaphore array
-  // the first argument is the semaphore identifier
-  // the second argument is the semaphore number
-  // the third argument is the command to be performed
-  // the fourth argument is a pointer to a semun structure,
-  semctl(this->id, 0, IPC_RMID, 0);
-  if (st == -1) {
-    perror("Semaphore::~Semaphore");
+  // Call semget to construct semaphore set
+  this->id = semget(0xB80874 + semId, nsems, IPC_CREAT | 0666);
+  if (-1 == this->id) {
+    perror("Semaphore::Semaphore (getting semaphore set)");
+  }
+  // set the initial value of the semaphore(s)
+  x.val = initialValue;
+  if (nsems == 1) { // only one semaphore in the set 
+    st = semctl(this->id, 0, SETVAL, x); // set the value of semaphore 0
+    if (st == -1) {
+      perror("Semaphore::Semaphore (setting initial value)");
+    }
+  } else { // more than one semaphore in the set
+    // prepare the semun struct
+    struct semid_ds ds; // used to get the current values of the sem set
+    x.buf = &ds;
+    st = semctl(this->id, 0, IPC_STAT, x); // get the current values of sem set
+    if (st == -1) {
+      perror("Semaphore::Semaphore (getting stats)");
+    }
+    x.array = new unsigned short[nsems]; // allocate memory for the array
+    for (int i = 0; i < nsems; i++) {
+      x.array[i] = initialValue; // fill the array with the initial value
+    }
+    // use the array to set the initial values of all semaphores in the set
+    st = semctl(this->id, 0, SETALL, x);
+    if (st == -1) {
+      perror("Semaphore::Semaphore (setting all initial values)");
+    }
+    delete [] x.array; // free the memory
   }
 }
-/**
-Signal method
-Need to call semop to add one to semaphore
-**/
-int Semaphore::Signal() {
+
+Semaphore::~Semaphore() {
+}
+
+int Semaphore::close() {
+  int st = -1;
+  // use semctl to remove the semaphore set passing the IPC_RMID flag and the id
+  st = semctl(this->id, 0, IPC_RMID);
+  if (st == -1) {
+    perror("Semaphore::close");
+  }
+  return st;
+}
+
+int Semaphore::Signal(int semNum) {
   int st = -1;
   // struct sembuf is defined in sys/sem.h
   // it is used to pass information to the semop system call
-  // it has three fields:
   // sem_num: the semaphore number
-  // sem_op: the operation to be performed where 1 is add one and -1 is subtract one
-  // sem_flg: the operation flags
+  // sem_op: the operation to be performed (1 is add one and -1 is subtract one)
+  // sem_flg: the operation flags (here we use 0 for no flags)
   struct sembuf z;
-  z.sem_num = 0;
+  z.sem_num = semNum;
   z.sem_op = 1;
   z.sem_flg = 0;
-  // call semop
+  // using semop to perform the operation signal.
   // the first argument is the semaphore identifier
   // the second argument is a pointer to a sembuf structure
   // the third argument is the number of sembuf structures
@@ -82,20 +91,19 @@ int Semaphore::Signal() {
   }
   return st;
 }
-/**
-Wait method
-Need to call semop to subtract one from the semaphore
-**/
-int Semaphore::Wait() {
-  int st = -1;
+
+int Semaphore::Wait(int semNum) {
   struct sembuf z;
-  z.sem_num = 0;
+  z.sem_num = semNum;
   z.sem_op = -1;
   z.sem_flg = 0;
-  // call semop
-  st = semop(this->id, &z, 1);
-  if (st == -1) {
-    perror("Semaphore::Wait");
+  // we do sem op and we check if the call was interrupted by a signal
+  // if it was interrupted we retry the call
+  while (semop(this->id, &z, 1) == -1 ) {
+    if (errno != EINTR || !RetryOnEINTR) {
+      perror("Semaphore::Wait");
+      return -1;
+    }
   }
-  return st;
+  return 0;
 }

@@ -6,16 +6,7 @@
 #include <sys/shm.h>
 #include "ShM.hpp"
 #define KEY 0xB80874
-/**
- * Class constructor
- *
- * Must call "shmget" to create a shared memory segment
- *
- * ShMkey is your student id number: 0xA12345 (to represent as hexadecimal value)
- * size = 1
- * ShMflg: IPC_CREAT | 0600
- *
- **/
+
 ShM::ShM(int size) {
   int st; // status
   // The first argument is the key to identify the shared memory segment.
@@ -32,16 +23,12 @@ ShM::ShM(int size) {
   this->id = st;
 }
 
-
-/**
- * Class destructor
- *
- * Must call shmctl
- *
- **/
 ShM::~ShM() {
-  int st;
-  // call shmctl to destroy this shared memory segment
+}
+
+int ShM::close() {
+  int st = -1;
+  // using shmctl to destroy this shared memory segment
   // the first argument is the shared memory identifier
   // the second argument is the command to be performed
   // the third argument is a pointer to a shmid_ds structure,
@@ -52,14 +39,20 @@ ShM::~ShM() {
     perror("ShM::~ShM");
     exit(2);
   }
+  return st;
 }
-/**
- * Attach method
- *
- * Need to call ShMat to receive a pointer to shared memory area
- *
- **/
+
 void * ShM::attach() {
+  // using shmat to attach the shared memory segment to the address space
+  // of the calling process.
+  // the first argument is the shared memory identifier
+  // the second argument is a pointer to the address where the shared memory
+  // segment should be attached. If this argument is NULL, the system chooses
+  // the address at which to attach the segment.
+  // the third argument is a set of flags that specify the read/write permission
+  // for the attached segment.
+  // here, we are attaching the shared memory segment to the address space
+  // of the calling process with read/write permissions.
   this->area = shmat(this->id, NULL, 0);
   if ((void *)-1 == this->area) {
     perror("ShM::attach");
@@ -68,14 +61,14 @@ void * ShM::attach() {
 
   return this->area;
 }
-/**
- * Detach method
- *
- * Need to call shmdt to destroy local pointer
- *
- **/
+
 int ShM::detach() {
   int st = -1;
+  // using shmdt to detach the shared memory segment from the address space
+  // of the calling process.
+  // the first argument is a pointer to the address where the shared memory
+  // segment is attached.
+  // the return value is 0 on success, and -1 on failure.
   st = shmdt(this->area);
   if ( -1 == st ) {
     perror("ShM::detach");
