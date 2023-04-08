@@ -110,10 +110,10 @@ int analizeArgs(int argc, char** argv, int64_t* n, int64_t* r, int64_t* v) {
     }
   } else {
     std::cout << "Error: Invalid number of arguments" << std::endl;
-    std::cout << "(1) Usage: ./Homework1 <NUmber of Players>" <<
+    std::cout << "(1) Usage: ./ProgrammingProject1 <NUmber of Players>" <<
       " <Rotation Sense(-1 = left, 1 = right)> <Potato Initial Value>" <<
       std::endl;
-    std::cout << "(2) Usage: ./Homework1" << std::endl;
+    std::cout << "(2) Usage: ./ProgrammingProject1" << std::endl;
     return 1;
   }
   return 0;
