@@ -7,15 +7,16 @@
 #include <unistd.h>
 #include <assert.h>
 #include <inttypes.h>
-#include <pthread.h>
 #include <semaphore.h>
 #include <stdbool.h>
+#include <errno.h>
+#include <time.h>
 /**
- * @brief Struct that represents the potato
- * @param value value of the potato
- * @param round round the potato is in
+ * @brief Struct that represents the potato_t
+ * @param value value of the potato_t
+ * @param round round the potato_t is in
  * @param winner player that won the game
- * @param playsCounter number of times the potato has been passed
+ * @param playsCounter number of times the potato_t has been passed
  * @param canAccessPotato pointer to the semaphore that controls access to p
  * @param finished pointer to the semaphore that signals that players finished
 */
@@ -27,7 +28,7 @@ typedef struct {
   int64_t playersCount;
   sem_t* canAccessPotato;
   sem_t* finished;
-} potato;
+} potato_t;
 /**
  * @brief Struct that represents the private memory of each player
  * @param processId process id of the player
@@ -35,7 +36,7 @@ typedef struct {
  * @param nextPlayer player id of the next player
  * @param isActive true if the player is still active
  * @param roundReached round the player reached
- * @param p pointer to the potato (shared memory)
+ * @param p pointer to the potato_t (shared memory)
 */
 typedef struct {
   int64_t processId;
@@ -43,8 +44,8 @@ typedef struct {
   int64_t nextPlayer;
   bool isActive;
   int64_t roundReached;
-  potato *p;
-} privateMemory;
+  potato_t *p;
+} priv_mem_t;
 /**
  * @brief sets the player's private memory
  * @param mem pointer to the private memory
@@ -52,36 +53,37 @@ typedef struct {
  * @param n number of players
  * @param r direction of the rotation
 */
-void setPlayer(privateMemory* mem, int64_t i, int64_t n, int64_t r, potato* p);
+void set_player(priv_mem_t* mem, int64_t i, int64_t n, int64_t r, potato_t* p);
 /**
- * @brief sets the potato
- * @param p pointer to the potato
- * @param v value of the potato
+ * @brief sets the potato_t
+ * @param v value of the potato_t
+ * @param n number of players
+ * @return pointer to the potato_t
 */
-void setPotato(potato* p, int64_t v);
+potato_t* set_potato(int64_t v, int64_t n);
 /**
- * @brief plays the potato game
- * @param p pointer to the potato
+ * @brief plays the potato_t game
+ * @param p pointer to the potato_t
  * @param mem pointer to the private memory
  * @param n number of players
  * @param canAccessPotato pointer to the semaphore that controls access to p
  * @param finished pointer to the semaphore that signals that playes finished
 */
-void* potatoGame(void* memory);
+void* potato_game(void* memory);
 /**
  * @brief prints a report of the player's stats
  * @param mem pointer to the private memory
  */
-void reportPlayer(privateMemory* mem);
+void report_player(priv_mem_t* mem);
 /**
  * @brief prints a report of the winner and information about the game
- * @param p pointer to the potato
+ * @param p pointer to the potato_t
  */
-void reportWinner(potato* p);
+void report_winner(potato_t* p);
 /**
- * @brief plays the potato game
- * @details uses collatz function to change the value of the potato
- * @param p pointer to the potato
+ * @brief plays the potato_t game
+ * @details uses collatz function to change the value of the potato_t
+ * @param p pointer to the potato_t
 */
-void play(potato* p);
+void play(potato_t* p);
 #endif /* GAMELOGIC_HPP */
