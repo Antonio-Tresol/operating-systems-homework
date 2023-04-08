@@ -1,27 +1,5 @@
 // Copyright 2023 Antonio Badilla Olivas <anthonny.badilla@ucr.ac.cr>.
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
 #include "ShM.hpp"
-#define KEY 0xB80874
-
-ShM::ShM(int size) {
-  int st; // status
-  // The first argument is the key to identify the shared memory segment.
-  // The second argument is the size of the shared memory segment.
-  // The third argument is a set of flags that specify the permissions
-  // and options for the shared memory segment.
-  // Here, we are creating a new shared memory segment with read/write 
-  // permissions for the owner, and no permissions for other users.
-  st = shmget(KEY, size, IPC_CREAT | 0600); // 0600 = 110 000 000
-  if (-1 == st) {
-    perror("ShM::ShM");
-    exit(1);
-  }
-  this->id = st;
-}
 
 ShM::~ShM() {
 }
@@ -54,7 +32,7 @@ void * ShM::attach() {
   // here, we are attaching the shared memory segment to the address space
   // of the calling process with read/write permissions.
   this->area = shmat(this->id, NULL, 0);
-  if ((void *)-1 == this->area) {
+  if (reinterpret_cast<void*>(-1) == this->area) {
     perror("ShM::attach");
     exit(2);
   }

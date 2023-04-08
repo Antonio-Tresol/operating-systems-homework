@@ -56,7 +56,7 @@ void setPotato(potato* p, int64_t v);
  * @param canAccessPotato pointer to the semaphore that controls access to p
  * @param finished pointer to the semaphore that signals that playes finished
 */
-void potatoGame(potato* p, privateMemory* mem, int64_t n,
+int potatoGame(potato* p, privateMemory* mem, int64_t n,
   Semaphore* canAccessPotato, Semaphore* finished);
 /**
  * @brief prints a report of the player's stats
