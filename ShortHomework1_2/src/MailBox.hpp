@@ -50,6 +50,10 @@ class MailBox {
   int close();
   /**
   * @brief to send messages to the queue
+  * @details the msgbuf structure is defined as follows:
+  * struct msgbuf {
+  *  int64_t mtype; // message type, must be > 0
+  *  char mtext[1]; // message data
   * @param message is the message to send(it is a programmer-defined structure)
   * @param size is the size of the message
   * @return 0 if success, -1 if error
@@ -60,13 +64,14 @@ class MailBox {
   * @param type is the type of the message
   * @param buffer is the message to receive
   * @param capacity is the size of the buffer
+  * @return 0 if success, -1 if error
   */
   int recv(int64_t type, void* buffer, size_t capacity);
   /**
    * @brief uses blocking receive to wait for a blank message
    * @details this is used to synchronize processes
    * @param fromWho a number to wait a message on (e.g. its own id for example)
-   * @return 0 if success, -1 if error
+   * @return n => 0 if success, -1 if error
    */
   int wait(int64_t fromWho);
   /**

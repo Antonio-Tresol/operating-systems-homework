@@ -2,12 +2,12 @@
 // based on code provided by Francisco Arroyo Mora.
 // modified based on the Linux Programming Interface by Michael Kerrisk
 #include "MailBox.hpp"
-
+#include <iostream>
 MailBox::~MailBox() {
 }
 
 int MailBox::close() {
-  int st = -1;
+  int st = 0;
   // The first argument is the id of the message queue to remove
   // The second argument is a set of flags that control the behavior of msgctl
   st = msgctl(this->id, IPC_RMID, NULL);
@@ -32,7 +32,6 @@ int MailBox::send(const void* message, size_t size) {
   st = msgsnd(this->id, message, size - 8, 0);
   if (-1 == st) {
     perror("MailBox::send");
-    exit(1);
   }
   return st;
 }
@@ -44,10 +43,9 @@ int MailBox::recv(int64_t type, void* buffer, size_t capacity) {
   // capacity: The maximum size of the message data in bytes
   // type: The type of message to receive (0 to receive any type of message)
   // 0: The flags parameter, which can be used to specify additional options.
-  st = msgrcv(this->id, static_cast<struct msgbuf*>(buffer), capacity, type, 0);
+  st = msgrcv(this->id, buffer, capacity, type, 0);
   if (-1 == st) {
     perror("MailBox::recv");
-    exit(1);
   }
   return st;
 }
@@ -61,7 +59,6 @@ int MailBox::wait(int64_t fromWho) {
   st = msgrcv(this->id, &dummy, 0, fromWho, 0);
   if (-1 == st) {
     perror("MailBox::wait");
-    exit(1);
   }
   return st;
 }
@@ -76,7 +73,6 @@ int MailBox::signal(int64_t toWho) {
   st = msgsnd(this->id, &dummy, 0, 0);
   if (-1 == st) {
     perror("MailBox::signal");
-    exit(1);
   }
   return st;
 }

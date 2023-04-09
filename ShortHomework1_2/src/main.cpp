@@ -1,9 +1,136 @@
-// Copyright 2023 Antonio Badilla Olivas <anthonny->badilla@ucr->ac->cr>->
-// this is a test to show functionality of new class MailBox
+// Copyright 2023 Antonio Badilla Olivas <anthonny.badilla@ucr.ac.cr>.
 #include <unistd.h>
-#include <iostream>
-#include <string>
-#include "MailBox.hpp"
+#include "GameLogic.hpp"
+/**
+ * @brief analizes the arguments and sets the values of n, r and v
+ * @param argc number of arguments
+ * @param argv array of arguments
+ * @param n number of players
+ * @param r number of rounds
+ * @param v value of the potato
+ * @return 0 if there are no errors, 1 if error occurs
+*/
+int analizeArgs(int argc, char** argv, int64_t* n, int64_t* r, int64_t* v);
+/**
+ * @brief cleans up by closing semaphores and shared memory
+ * @param canAccessPotato semaphore to control access to potato
+ * @param finished semaphore to control when all players have finished
+ * @param shm shared memory to control potato
+ * @return 0 if there are no errors, 1 if error occurs
+*/
+int cleanUp(MailBox* canAccessPotato, MailBox* finished);
 
-int main() {
+int main(int argc, char** argv) {
+  int64_t n = 0;
+  int64_t r = 0;
+  int64_t v = 0;
+  int error = 0;
+  // check if there are enough arguments
+  error = analizeArgs(argc, argv, &n, &r, &v);
+  if (error != 0) {
+    return error;
+  }
+  potato* p = new potato;
+  // create semaphore to control access to potato
+  MailBox canAccessPotato;
+  // create semaphore to control when all players have finished
+  MailBox finished(n + 1);
+  // set potato
+  setPotato(p, v);
+  // create private memory
+  privateMemory mem;
+  // send potato to player 0
+  error = sendPotato(p, &canAccessPotato, 1);  // send potato to player 0
+  if (error != 0) {
+    return error;
+  }
+  // create n processes (players)
+  int64_t i = 1;
+  while (i < n + 1) {
+    mem.processId = fork();
+    // check if fork failed
+    if (mem.processId < 0) {
+      std::cout << "Error: Failed to create process" << std::endl;
+      return 1;
+    }
+    // check if it is a child process
+    if (mem.processId == 0) {
+      break;
+    }
+    i = i + 1;
+  }
+  // main process cleans up by closing semaphores and shared memory
+  if (mem.processId > 0) {
+    // receives updated potato
+    error = receivePotato(p, &finished, n + 1);
+    if (error < 0) {
+      return error;
+    }
+    // waits for all players to finish
+    for (int64_t j = 0; j < n; j++) {
+      error = finished.wait(n + 1);
+      if (error < 0) {
+        return error;
+      }
+    }
+    reportWinner(p);
+    // closes all semaphores
+    error = cleanUp(&canAccessPotato, &finished);
+    if (error != 0) {
+      return error;
+    }
+  } else {  // child process aka players
+    setPlayer(&mem, i, n, r);  // set themselves
+    error = potatoGame(p, &mem, n, &canAccessPotato, &finished);  // play
+    if (error != 0) {
+      std::string errorString = "Error: Player " + std::to_string(getpid()) +
+        " failed to play";
+      perror(errorString.c_str());
+      return error;
+    }
+  }
+  delete p;
+  return error;
+}
+
+int analizeArgs(int argc, char** argv, int64_t* n, int64_t* r, int64_t* v) {
+  // check if there are enough arguments
+  if (argc == 1) {
+    // run with default values
+    *n = 100;
+    *r = 1;
+    *v = 100;
+  } else if (argc == 4) {
+    // cast args to int64_t
+    try {
+      *n = std::stoll(argv[1]);
+      *r = std::stoll(argv[2]);
+      *v = std::stoll(argv[3]);
+    } catch (std::invalid_argument& e) {
+      perror("Error: Invalid argument");
+      return 1;
+    }
+  } else {
+    std::cout << "Error: Invalid number of arguments" << std::endl;
+    std::cout << "(1) Usage: ./ProgrammingProject1 <NUmber of Players>" <<
+      " <Rotation Sense(-1 = left, 1 = right)> <Potato Initial Value>" <<
+      std::endl;
+    std::cout << "(2) Usage: ./ProgrammingProject1" << std::endl;
+    return 1;
+  }
+  return 0;
+}
+
+int cleanUp(MailBox* canAccessPotato, MailBox* finished) {
+  int error = 0;
+  // closes all semaphores
+  error = canAccessPotato->close();
+  if (error != 0) {
+    return error;
+  }
+  error = finished->close();
+  if (error != 0) {
+    return error;
+  }
+  return error;
 }
