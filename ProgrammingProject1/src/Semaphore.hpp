@@ -1,17 +1,12 @@
 // Copyright 2023 Antonio Badilla Olivas <anthonny.badilla@ucr.ac.cr>.
+// based on code provided by Francisco Arroyo Mora. 
+// modified based on the Linux Programming Interface by Michael Kerrisk
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <stdio.h>
 #include <errno.h>
-/**
- * @file Semaphore.hpp
- * @brief Semaphore class definition
- * @details This class implements a semaphore using the System V IPC
- * @author Antonio Badilla Olivas, based on code provided by Francisco Arroyo
- * @date 2023
- * 
-*/
+
 /**
 *@brief Union definition to set an initial value to semaphore
 */
@@ -23,7 +18,14 @@ union semun {                   /* Used in calls to semctl() */
     struct seminfo *    __buf;  /* Buffer for IPC_INFO (linux only)*/
 #endif
 };
-
+/**
+ * @file Semaphore.hpp
+ * @brief Semaphore class definition
+ * @details This class implements a semaphore using the System V IPC
+ * @author Antonio Badilla Olivas (based on code provided by Francisco Arroyo)
+ * @date 2023
+ * 
+*/
 class Semaphore {
  public:
   /**
