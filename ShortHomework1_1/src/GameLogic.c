@@ -103,6 +103,8 @@ void* potato_game(void* memory) {
         p->value = randnum(1, 1000000, mem->playerID);
         mem->roundReached = p->round;  // player records the round they reached
         p->round = p->round + 1;  // increments the round counter
+        // player reports that they have finished
+        report_player(mem);
         if (p->round == n + 1) {  // if n rounds have passed, game is over
           p->value = -1;  // send a message to all players that someone has won
           p->winner = mem->playerID;  // write the winner's id on the potato_t
@@ -130,8 +132,6 @@ void* potato_game(void* memory) {
       }
     }
   }
-  // player reports that they have finished
-  report_player(mem);
   // player reports that they have finished
   error = sem_post(finished);
   if (error != 0) {

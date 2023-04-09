@@ -106,6 +106,8 @@ procedure potatoGame(privateMemory mem):
         p.value := randnum()
         // aumenta el contador de rondas de la papa
         p.round := p.round + 1
+        // reportar que el jugador se retiro
+        reportPlayer(mem)
         if p.round = n + 1: // si la papa exploto n veces entonces:
           // el juego termino y el jugador gano
           p.value := -1 // poner el valor en -1 y con ello avisa a los demas
@@ -120,7 +122,6 @@ procedure potatoGame(privateMemory mem):
       signal(canAccessPotato[mem.nextPlayer]) // pasar la papa
     end if
   end while
-  reportPlayer(mem)
 end procedure
 
 procedure reportPlayer(privateMemory mem):
