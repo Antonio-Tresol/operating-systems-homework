@@ -53,7 +53,7 @@ procedure main():
     // preparar el jugador
     setPlayer(mem, i, n, r)
     // jugar
-    potatoGame(p, mem, canAccessPotato, finished)
+    potatoGame(p, mem, canAccessPotato, finished, n)
     // reportar sus resultados
     reportPlayer(mem)
   end if
@@ -92,7 +92,7 @@ procedure play(potato p): //
 end procedure
 
 procedure potatoGame(potato p, privateMemory mem, Semaphores canAccessPotato,
-  Semaphore finished):
+  Semaphore finished, int n):
   while true:
     wait(canAccessPotato[mem.playerID]) // esperar a que sea su turno
     if p.value = -1: // si el juego termino entonces:
