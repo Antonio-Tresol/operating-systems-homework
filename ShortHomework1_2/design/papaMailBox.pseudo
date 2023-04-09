@@ -1,0 +1,156 @@
+Declare potato:
+  int type
+  int value
+  int round
+  int winner
+  int playsCount
+end potato
+
+Declare privateMemory:
+  int processID
+  int playerID
+  int nextPlayer
+  boolean isActive
+  int roundReached
+end privateMemory
+
+procedure main():
+  // cantidad de jugadores / procesos
+  int n := input("Enter the number of players: ")
+  int r := input("Enter the sense of the rotation: ")
+  int v := input("Enter the initial value of the potato: ")
+  // crear procesos
+  int processId := 0
+  // crear memoria compartida para tener la papa
+  potato p := createMessage();
+  // inicializar la papa
+  setPotato(p, v)
+  // crear colas de mensajes para sincronizar los procesos
+  // una para hacer esperas y señales
+  MailBox canAccessPotato := createMessageQueue(0);
+  // una para avisar que termino
+  MailBox finished := createMessageQueue(2);
+  // para empezar el juego, se deja listo el mensaje para que el primer jugador
+  // pueda empezar a jugar
+  canAccessPotato.signal(0, p) 
+  // crear memoria privada 
+  privateMemory mem := createPrivateMemory();
+  // crear los jugadores
+  int i := 0;
+  while i < n:
+    mem.processId := createProcess() // fork()
+    if mem.processId = 0:
+      break
+    end if
+    i := i + 1
+  end while 
+  if (mem.processID > 0):
+    // recibir papa actualizada
+    finished.receive(n + 1, p)
+    // esperar a que terminen los demas
+    for i := 0 to n:
+      finished.wait()
+    end for
+    // el proceso padre imprime el ganador
+    reportWinner(p)
+    // cerrar colas de mensajes
+    canAccessPotato.close()
+    finished.close()
+  else:
+    // preparar el jugador
+    setPlayer(mem, i, n, r)
+    // jugar
+    potatoGame(p, mem, canAccessPotato, finished, n)
+    // reportar sus resultados
+    reportPlayer(mem)
+  end if
+
+end procedure
+
+procedure setPotato(potato p, int v):
+  p.value := v
+  p.round := 1
+  p.winner := -1
+  p.playsCount := 0
+end procedure
+
+procedure setPlayer(privateMemory mem, int i, int n, int r):
+  // darle un id a cada jugador
+  // el id del jugador lo van a usar para saber que semaforo usar
+  mem.playerID := i
+  // definir el siguiente jugador
+  mem.nextPlayer := mem.playerID + r // el sentido de la rotacion determina que
+  // a que semaforo hacer signal
+  if mem.nextPlayer < 0:
+    mem.nextPlayer := n - 1
+  else if mem.nextPlayer > n:
+    mem.nextPlayer := 0
+  end if
+  mem.isActive := true
+  mem.roundReached := -1
+end procedure
+
+procedure play(potato p): //
+  // si el valor de la papa es impar
+  if p.value % 2 != 0: // if 1 = p.value BitAnd 1
+    p.value := p.value * 3 + 1
+  else:
+    p.value := p.value / 2 // p.value := ShiftRight p.value, 1 
+  end if
+end procedure
+
+procedure potatoGame(potato p, privateMemory mem, Semaphores canAccessPotato,
+  Semaphore finished, int n):
+  while true:
+    // recibir la papa cuando esta tenga como tipo el id del jugador
+    canAccessPotato.receive(mem.playerID, p)
+    if p.value = -1: // si el juego termino entonces:
+      // pasar la papa para que se den cuenta los demas
+      p.type := mem.nextPlayer
+      canAccessPotato.send(p)
+      finished.signal() // avisar que al main que termino
+      break
+    else if mem.isActive: // si el jugador esta activo entonces:
+      play(p) // jugar
+      p.playsCount := p.playsCount + 1 // aumentar el contador de jugadas
+      if p.value = 1: // si la papa exploto entonces:
+        // jugador se retira
+        mem.isActive := false  
+        mem.roundReached := p.round
+        // pone un nuevo valor a la papa random
+        p.value := randnum()
+        // aumenta el contador de rondas de la papa
+        p.round := p.round + 1
+        if p.round = n + 1: // si la papa exploto n veces entonces:
+          // el juego termino y el jugador gano
+          p.value := -1 // poner el valor en -1 y con ello avisa a los demas
+          p.winner := mem.playerID // escribir su id en la papa
+          p.type := n + 1 
+          // enviar al main la papa actualizada
+          finished.send(p)
+        end if
+        p.type := mem.nextPlayer
+        canAccessPotato.send(p) // pasar la papa
+      end if
+      // si la papa no exploto entonces:
+      p.type := mem.nextPlayer
+      canAccessPotato.send(p) // pasar la papa
+    else:
+      // si el jugador no esta activo:
+      p.type := mem.nextPlayer
+      canAccessPotato.send(p) // pasar la papa
+    end if
+  end while
+end procedure
+
+procedure reportPlayer(privateMemory mem):
+  print "Player " + mem.playerID + " has exited the game (round reached: " + 
+    mem.roundReached + ")"
+end procedure
+
+procedure reportWinner(potato p):
+  print "The winner is: " + p.winner 
+  print "The potato was passed " + p.playsCount + " times during the game! :O"
+end procedure
+
+
