@@ -69,6 +69,7 @@ int potatoGame(potato* p, privateMemory* mem, int64_t n,
         p->value = randnum(1, 1000000);
         mem->roundReached = p->round;  // player records the round they reached
         p->round = p->round + 1;  // increments the round counter
+        reportPlayer(mem);  // report their results
         if (p->round == n + 1) {  // if n rounds have passed, game is over
           p->value = -1;  // send a message to all players that someone has won
           p->winner = mem->playerID;  // write the winner's id on the potato

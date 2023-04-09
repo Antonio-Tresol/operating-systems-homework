@@ -86,7 +86,6 @@ int main(int argc, char** argv) {
       perror(errorString.c_str());
       return error;
     }
-    reportPlayer(&mem);  // report their results
   }
   return error;
 }

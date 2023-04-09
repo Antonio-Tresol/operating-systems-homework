@@ -1,5 +1,5 @@
 // Copyright 2023 Antonio Badilla Olivas <anthonny.badilla@ucr.ac.cr>.
-// based on code provided by Francisco Arroyo Mora. 
+// based on code provided by Francisco Arroyo Mora.
 // modified based on the Linux Programming Interface by Michael Kerrisk
 #include "Semaphore.hpp"
 
