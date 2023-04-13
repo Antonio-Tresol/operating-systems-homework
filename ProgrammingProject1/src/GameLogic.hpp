@@ -74,4 +74,11 @@ void reportWinner(potato* p);
  * @param p pointer to the potato
 */
 void play(potato* p);
+/**
+ * @brief Generates a random number between min and max
+ * @param min minimum value
+ * @param max maximum value
+ * @return random number
+*/
+int64_t randnum(int64_t min, int64_t max);
 #endif /* GAMELOGIC_HPP */

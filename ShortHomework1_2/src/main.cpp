@@ -39,8 +39,8 @@ int main(int argc, char** argv) {
   setPotato(p, v);
   // create private memory
   privateMemory mem;
-  // send potato to player 0
-  error = sendPotato(p, &canAccessPotato, 1);  // send potato to player 0
+  // send potato to player to random player to start
+  error = sendPotato(p, &canAccessPotato, randnum(0, n-1));
   if (error != 0) {
     return error;
   }

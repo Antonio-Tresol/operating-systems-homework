@@ -31,3 +31,10 @@ juego. El procedimiento principal (“main”) no participará en las decisiones
 (excepto para iniciar el juego), ni en la ronda, una vez creados los recursos, solo debe
 esperar a que todos los participantes terminen, para eliminar los elementos de
 sincronización y finalizar la ejecución del programa.
+
+## como compilar
+
+usar 'make' para compilar el programa
+para ejecutar el programa usar './ProgammingProject1 <n> <v> <r>'
+usar 'make clean' para limpiar los archivos compilados
+usar 'make run' para compilar y ejecutar el programa con los valores por defecto

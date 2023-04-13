@@ -89,4 +89,11 @@ int sendPotato(potato* p, MailBox* msgQueue, int64_t toWho);
  * @return 0 if there are no errors, 1 if error occurs
 */
 int receivePotato(potato* p, MailBox* msgQueue, int64_t fromWho);
+/**
+ * @brief Generates a random number between min and max
+ * @param min minimum value
+ * @param max maximum value
+ * @return random number
+*/
+int64_t randnum(int64_t min, int64_t max);
 #endif /* GAMELOGIC_HPP */

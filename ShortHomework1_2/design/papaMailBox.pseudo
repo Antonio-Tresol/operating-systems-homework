@@ -32,7 +32,7 @@ procedure main():
   MailBox finished := createMessageQueue(2);
   // para empezar el juego, se deja listo el mensaje para que el primer jugador
   // pueda empezar a jugar
-  canAccessPotato.signal(0, p) 
+  canAccessPotato.signal(randnum(0, n-1), p) 
   // crear memoria privada 
   privateMemory mem := createPrivateMemory();
   // crear los jugadores

@@ -32,8 +32,8 @@ int main(int argc, char** argv) {
   }
   // create semaphore to control access to potato
   Semaphore canAccessPotato(0, 0, n);
-  // set first semaphore to 1 so that the first player can start
-  error = canAccessPotato.Signal(0);
+  // set first semaphore to 1 so that the first random player can start
+  error = canAccessPotato.Signal(randnum(0, n-1));
   if (error != 0) {
     return error;
   }

@@ -29,7 +29,7 @@ procedure main():
   setPotato(p, v)
   // crear semaforo para controlar memoria compartida
   // the first player can access the potato it will start
-  signal(canAccessPotato[0]) 
+  signal(canAccessPotato[randnum(0,n-1)]) 
   // crear memoria privada 
   privateMemory mem := createPrivateMemory();
   // crear los jugadores

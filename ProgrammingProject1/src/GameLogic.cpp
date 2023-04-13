@@ -2,14 +2,6 @@
 #include "GameLogic.hpp"
 #include <random>
 
-/**
- * @brief Generates a random number between min and max
- * @param min minimum value
- * @param max maximum value
- * @return random number
-*/
-int64_t randnum(int64_t min, int64_t max);
-
 void setPotato(potato* p, int64_t v) {
   p->value = v;
   p->round = 1;

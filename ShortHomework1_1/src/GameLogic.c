@@ -1,12 +1,5 @@
 // Copyright 2023 Antonio Badilla Olivas <anthonny.badilla@ucr.ac.cr>.
 #include "GameLogic.h"
-/**
- * @brief Generates a random number between min and max
- * @param min minimum value
- * @param max maximum value
- * @return random number
-*/
-int64_t randnum(int64_t min, int64_t max, int64_t seed);
 
 potato_t* set_potato(int64_t v, int64_t n) {
   potato_t* p = (potato_t*) calloc(1, sizeof(potato_t));
@@ -38,7 +31,7 @@ potato_t* set_potato(int64_t v, int64_t n) {
     perror("Error: sem_init failed to initialize finished");
     return NULL;
   }
-  error = sem_post(&p->canAccessPotato[0]);
+  error = sem_post(&p->canAccessPotato[randnum(0, n-1, 0)]);
   if (error != 0) {
     perror("Error: sem_post failed to post canAccessPotato");
     return NULL;
