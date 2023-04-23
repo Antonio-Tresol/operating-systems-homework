@@ -126,10 +126,22 @@ gitignore:
 clean:
 	rm -rf $(IGNORES)
 
-# Install dependencies (Debian)
+# Install dependencies (Debian-based distributions)
 instdeps:
 	sudo apt install build-essential clang valgrind icdiff doxygen graphviz \
-	python3-pip python3-gpg && sudo pip3 install cpplint
+	python3-pip python3-gpg libssl-dev && sudo pip3 install cpplint
+
+# Install dependencies (Fedora)
+FedoraInstallDeps:
+	sudo dnf install gcc-c++ clang valgrind doxygen graphviz \
+  python3-pip python3-gpg openssl-devel && sudo snap install icdiff && \
+	sudo pip3 install cpplint
+
+# Install dependencies (Arch Linux)
+ArchInstallDeps:
+	sudo pacman -S base-devel clang valgrind doxygen graphviz \
+	python-pip gnupg openssl python-gnupg && yay -S icdiff && \
+	sudo pip install cpplint
 
 help:
 	@echo "Usage make [-jN] [VAR=value] [target]"
