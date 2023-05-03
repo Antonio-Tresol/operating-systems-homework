@@ -176,8 +176,8 @@ void Condition::Wait(Lock* conditionLock) {
   ASSERT(conditionLock->isHeldByCurrentThread());  // Check that the current
   // thread owns the lock
   conditionLock->Release();  // Release the lock
-  this->waitQueue->Append(
-      currentThread);             // Add the current thread to the wait queue
+  // Add the current thread to the wait queue
+  this->waitQueue->Append(currentThread);
   currentThread->Sleep();         // Put the current thread to sleep
   conditionLock->Acquire();       // Acquire the lock again
   interrupt->SetLevel(oldLevel);  // Re-enable interrupts
@@ -188,10 +188,11 @@ void Condition::Wait(Lock* conditionLock) {
 void Condition::Signal(Lock* conditionLock) {
   // Disable interrupts to make operation atomic
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
-  ASSERT(conditionLock->isHeldByCurrentThread());  // Check that the current
-                                                   // thread owns the lock
-  Thread* thread =
-      this->waitQueue->Remove();    // Remove a thread from the wait queue
+  // Check that the current
+  ASSERT(conditionLock->isHeldByCurrentThread());
+  // thread owns the lock
+  // Remove a thread from the wait queue
+  Thread* thread = this->waitQueue->Remove();
   if (thread != NULL) {             // If a thread was waiting
     scheduler->ReadyToRun(thread);  // Make the thread ready to run
   }
@@ -253,8 +254,8 @@ Barrier::Barrier(const char* debugName, int initCount) {
 
 // Destructor: Deallocates resources associated with the barrier.
 Barrier::~Barrier() {
-  delete this
-      ->condition;    // Free the memory occupied by the condition variable.
+  // Free the memory occupied by the condition variable.
+  delete this->condition;
   delete this->lock;  // Free the memory occupied by the lock.
 }
 
