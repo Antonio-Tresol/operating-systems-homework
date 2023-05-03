@@ -148,7 +148,7 @@ class Mutex {
 
  private:
   char* name;
-  Lock lock;  // Lock to implement mutex
+  Semaphore* semaphore;  // Use a semaphore instead of a lock
   // plus some other stuff you'll need to define
 };
 

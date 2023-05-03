@@ -216,28 +216,25 @@ void Condition::Broadcast(Lock* conditionLock) {
   interrupt->SetLevel(oldLevel);
 }
 
-// Constructor: Initializes a mutex with a given name.
+// Mutex class
 Mutex::Mutex(const char* debugName) {
-  this->name = new char[strlen(debugName) + 1];
+  name = new char[strlen(debugName) + 1];
   strcpy(name, debugName);
-  this->lock = new Lock(debugName);  // Initialize a lock to be used internally
-                                     // for synchronization.
+  // Initialize the semaphore with a value of 1
+  semaphore = new Semaphore("MutexSemaphore", 1);
 }
 
-// Destructor: Deallocates resources associated with the mutex.
 Mutex::~Mutex() {
-  delete this->lock;  // Free the memory occupied by the lock.
+  delete[] name;
+  delete semaphore;
 }
 
-// Lock: Acquires the mutex, blocking the current thread if it is already held
-// by another thread.
 void Mutex::Lock() {
-  this->lock->Acquire();  // Acquire the internal lock.
+  semaphore->P();  // Acquire the semaphore
 }
 
-// Unlock: Releases the mutex, allowing other threads to acquire it.
 void Mutex::Unlock() {
-  this->lock->Release();  // Release the internal lock.
+  semaphore->V();  // Release the semaphore
 }
 
 // Constructor: Initializes a barrier with a given name and count.
