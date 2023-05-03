@@ -81,7 +81,7 @@ void ThreadTest() {
 
   DEBUG('t', "Entering SimpleTest");
 
-  dp = new DinningPh();
+  dp = new DiningPh();
 
   for (long k = 0; k < 5; k++) {
     Ph = new Thread("dp");
