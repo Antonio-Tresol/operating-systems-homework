@@ -1,0 +1,21 @@
+Proyecto1
+
+- userprog
+- vamos a trabajar en addrspace () y en exception.cc (para desarrollar todos los system calls -se pueden usar los syscall de linux-)
+	- revisar los comentarios en  exception y syscall.h
+	- hacer que un usuario pueda correr un programa en en nachos
+	- para eso hay que desarrollar system call api.
+	- read/write stdin solo lectura 0
+	- read/write stdout solo escritura 1
+	- read/write std error solo lectura 1
+	- revisar machine.h para poder hacer las instrucciones con maquina como leer y escribir en registros (necesario para las syscall de nachos)
+	- memoria de la maquina es un array bytes ya paginado (32 pagina de 128bytes)
+	- darle vuelta a las declaraciones de read y write (estetico)
+	_ corre programa de usuario make depend, make, ;/nachos -x ../test/halt
+	- cada instruccion es de 4 bytes
+	- hacer una funcion para aumentar el program counter (hay que aumentar el contador en cada system call).
+	- hay instrucciones donde no hay que sumarle al program counter, en system calls si de fijo.
+
+addrspace
+- hexdump -n 128 ../test/halt
+
