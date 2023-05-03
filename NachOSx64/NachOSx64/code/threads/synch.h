@@ -135,7 +135,6 @@ class Condition {
  private:
   char* name;
   List<Thread*>* waitQueue;  // queue of threads waiting on the condition
-  // plus some other stuff you'll need to define
 };
 
 // The following class define a Mutex, a binary semaphore initialized in 1
@@ -149,6 +148,7 @@ class Mutex {
 
  private:
   char* name;
+  Lock lock;  // Lock to implement mutex
   // plus some other stuff you'll need to define
 };
 
@@ -156,12 +156,17 @@ class Mutex {
 // threads Once the required threads arrive at barrier point, they can continue
 class Barrier {
  public:
-  Barrier(const char*, int = 1);
+  Barrier(const char* debugName, int initCount = 1);
   ~Barrier();
   void Wait();
 
  private:
-  char* name;
+  char* name;     // Barrier's name for debugging purposes.
+  int threshold;  // Threshold count required for threads to pass the barrier.
+  int count;      // Current count of waiting threads.
+  Condition* condition;  // Condition variable for synchronization.
+  Lock* lock;            // Lock for synchronization.
+
   // plus some other stuff you'll need to define
 };
 

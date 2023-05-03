@@ -35,9 +35,10 @@
 //----------------------------------------------------------------------
 
 Semaphore::Semaphore(const char* debugName, int initialValue) {
-  name = (char*)debugName;
-  value = initialValue;
-  queue = new List<Thread*>;
+  this->name = new char[strlen(debugName) + 1];
+  strcpy(name, debugName);
+  this->value = initialValue;
+  this->queue = new List<Thread*>;
 }
 
 //----------------------------------------------------------------------
@@ -46,7 +47,7 @@ Semaphore::Semaphore(const char* debugName, int initialValue) {
 //	is still waiting on the semaphore!
 //----------------------------------------------------------------------
 
-Semaphore::~Semaphore() { delete queue; }
+Semaphore::~Semaphore() { delete this->queue; }
 
 //----------------------------------------------------------------------
 // Semaphore::P
@@ -65,8 +66,8 @@ void Semaphore::P() {
     queue->Append(currentThread);  // so go to sleep
     currentThread->Sleep();
   }
-  value--;  // semaphore available,
-            // consume its value
+  this->value--;  // semaphore available,
+                  // consume its value
 
   interrupt->SetLevel(oldLevel);  // re-enable interrupts
 }
@@ -114,7 +115,8 @@ void Semaphore::Destroy() {
 // the test case in the network assignment won't work!
 // Constructor: Initialize the lock with a given debug name
 Lock::Lock(const char* debugName) {
-  name = (char*)debugName;  // Store the debug name
+  this->name = new char[strlen(debugName) + 1];
+  strcpy(name, debugName);
   // Create a semaphore with an initial value of 1
   semaphore = new Semaphore(debugName, 1);
   holderThread = NULL;  // No thread owns the lock initially
@@ -157,13 +159,14 @@ bool Lock::isHeldByCurrentThread() {
 
 // Constructor: Initialize the condition variable with a given debug name
 Condition::Condition(const char* debugName) {
-  name = (char*)debugName;        // Store the debug name
-  waitQueue = new List<Thread*>;  // Initialize the wait queue for threads
+  this->name = new char[strlen(debugName) + 1];
+  strcpy(name, debugName);              // Store the debug name
+  this->waitQueue = new List<Thread*>;  // Initialize the wait queue for threads
 }
 
 // Destructor: Clean up the condition variable
 Condition::~Condition() {
-  delete waitQueue;  // Delete the wait queue
+  delete this->waitQueue;  // Delete the wait queue
 }
 
 // Wait for a condition to be signaled while releasing the associated lock
@@ -172,11 +175,12 @@ void Condition::Wait(Lock* conditionLock) {
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
   ASSERT(conditionLock->isHeldByCurrentThread());  // Check that the current
   // thread owns the lock
-  conditionLock->Release();          // Release the lock
-  waitQueue->Append(currentThread);  // Add the current thread to the wait queue
-  currentThread->Sleep();            // Put the current thread to sleep
-  conditionLock->Acquire();          // Acquire the lock again
-  interrupt->SetLevel(oldLevel);     // Re-enable interrupts
+  conditionLock->Release();  // Release the lock
+  this->waitQueue->Append(
+      currentThread);             // Add the current thread to the wait queue
+  currentThread->Sleep();         // Put the current thread to sleep
+  conditionLock->Acquire();       // Acquire the lock again
+  interrupt->SetLevel(oldLevel);  // Re-enable interrupts
 }
 
 // Signal a waiting thread on the condition variable and release the associated
@@ -186,9 +190,10 @@ void Condition::Signal(Lock* conditionLock) {
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
   ASSERT(conditionLock->isHeldByCurrentThread());  // Check that the current
                                                    // thread owns the lock
-  Thread* thread = waitQueue->Remove();  // Remove a thread from the wait queue
-  if (thread != NULL) {                  // If a thread was waiting
-    scheduler->ReadyToRun(thread);       // Make the thread ready to run
+  Thread* thread =
+      this->waitQueue->Remove();    // Remove a thread from the wait queue
+  if (thread != NULL) {             // If a thread was waiting
+    scheduler->ReadyToRun(thread);  // Make the thread ready to run
   }
   interrupt->SetLevel(oldLevel);  // Re-enable interrupts
 }
@@ -203,25 +208,69 @@ void Condition::Broadcast(Lock* conditionLock) {
   // Wake up all threads in the wait queue
   Thread* thread;
   // while there are threads in the wait queue
-  while ((thread = waitQueue->Remove()) != NULL) {
+  while ((thread = this->waitQueue->Remove()) != NULL) {
     // Make the thread ready to run
     scheduler->ReadyToRun(thread);
   }
   interrupt->SetLevel(oldLevel);
 }
 
-// Mutex class
-Mutex::Mutex(const char* debugName) {}
+// Constructor: Initializes a mutex with a given name.
+Mutex::Mutex(const char* debugName) {
+  this->name = new char[strlen(debugName) + 1];
+  strcpy(name, debugName);
+  this->lock = new Lock(debugName);  // Initialize a lock to be used internally
+                                     // for synchronization.
+}
 
-Mutex::~Mutex() {}
+// Destructor: Deallocates resources associated with the mutex.
+Mutex::~Mutex() {
+  delete this->lock;  // Free the memory occupied by the lock.
+}
 
-void Mutex::Lock() {}
+// Lock: Acquires the mutex, blocking the current thread if it is already held
+// by another thread.
+void Mutex::Lock() {
+  this->lock->Acquire();  // Acquire the internal lock.
+}
 
-void Mutex::Unlock() {}
+// Unlock: Releases the mutex, allowing other threads to acquire it.
+void Mutex::Unlock() {
+  this->lock->Release();  // Release the internal lock.
+}
 
-// Barrier class
-Barrier::Barrier(const char* debugName, int count) {}
+// Constructor: Initializes a barrier with a given name and count.
+Barrier::Barrier(const char* debugName, int initCount) {
+  this->name = new char[strlen(debugName) + 1];
+  strcpy(name, debugName);  // Set the barrier's name for debugging purposes.
+  this->threshold = initCount;  // Set the threshold count required for threads
+                                // to pass the barrier.
+  initCount = 0;  // Initialize the current count of waiting threads to 0.
+  // Initialize the condition variable for synchronization.
+  this->condition = new Condition(debugName);
+  this->lock = new Lock(debugName);  // Initialize the lock for synchronization.
+}
 
-Barrier::~Barrier() {}
+// Destructor: Deallocates resources associated with the barrier.
+Barrier::~Barrier() {
+  delete this
+      ->condition;    // Free the memory occupied by the condition variable.
+  delete this->lock;  // Free the memory occupied by the lock.
+}
 
-void Barrier::Wait() {}
+// Wait: Blocks the current thread until the required number of threads have
+// reached the barrier.
+void Barrier::Wait() {
+  this->lock->Acquire();  // Acquire the lock to ensure atomicity.
+  this->count++;          // Increment the current count of waiting threads.
+  if (this->count < this->threshold) {  // If the threshold has not been
+                                        // reached, block the current thread.
+    // Wait on the condition variable, releasing the lock.
+    this->condition->Wait(lock);
+  } else {  // If the threshold has been reached, unblock all waiting threads.
+    this->count = 0;  // Reset the count of waiting threads to 0.
+    this->condition->Broadcast(lock);  // Broadcast the condition variable,
+                                       // waking up all waiting threads.
+  }
+  this->lock->Release();  // Release the lock.
+}
