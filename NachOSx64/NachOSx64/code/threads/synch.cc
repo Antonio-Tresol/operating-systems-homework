@@ -1,6 +1,6 @@
-// synch.cc 
+// synch.cc
 //	Routines for synchronizing threads.  Three kinds of
-//	synchronization routines are defined here: semaphores, locks 
+//	synchronization routines are defined here: semaphores, locks
 //   	and condition variables (the implementation of the last two
 //	are left to the reader).
 //
@@ -18,11 +18,12 @@
 // that be disabled or enabled).
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
-#include "copyright.h"
 #include "synch.h"
+
+#include "copyright.h"
 #include "system.h"
 
 //----------------------------------------------------------------------
@@ -33,11 +34,10 @@
 //	"initialValue" is the initial value of the semaphore.
 //----------------------------------------------------------------------
 
-Semaphore::Semaphore(const char* debugName, int initialValue)
-{
-    name = (char *)debugName;
-    value = initialValue;
-    queue = new List<Thread*>;
+Semaphore::Semaphore(const char* debugName, int initialValue) {
+  name = (char*)debugName;
+  value = initialValue;
+  queue = new List<Thread*>;
 }
 
 //----------------------------------------------------------------------
@@ -46,10 +46,7 @@ Semaphore::Semaphore(const char* debugName, int initialValue)
 //	is still waiting on the semaphore!
 //----------------------------------------------------------------------
 
-Semaphore::~Semaphore()
-{
-    delete queue;
-}
+Semaphore::~Semaphore() { delete queue; }
 
 //----------------------------------------------------------------------
 // Semaphore::P
@@ -61,19 +58,17 @@ Semaphore::~Semaphore()
 //	when it is called.
 //----------------------------------------------------------------------
 
-void
-Semaphore::P()
-{
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-    
-    while (value == 0) { 			// semaphore not available
-	queue->Append(currentThread);		// so go to sleep
-	currentThread->Sleep();
-    } 
-    value--; 					// semaphore available, 
-						// consume its value
-    
-    interrupt->SetLevel(oldLevel);		// re-enable interrupts
+void Semaphore::P() {
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);  // disable interrupts
+
+  while (value == 0) {             // semaphore not available
+    queue->Append(currentThread);  // so go to sleep
+    currentThread->Sleep();
+  }
+  value--;  // semaphore available,
+            // consume its value
+
+  interrupt->SetLevel(oldLevel);  // re-enable interrupts
 }
 
 //----------------------------------------------------------------------
@@ -84,17 +79,15 @@ Semaphore::P()
 //	are disabled when it is called.
 //----------------------------------------------------------------------
 
-void
-Semaphore::V()
-{
-    Thread *thread;
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+void Semaphore::V() {
+  Thread* thread;
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-    thread = queue->Remove();
-    if (thread != NULL)	   // make thread ready, consuming the V immediately
-	scheduler->ReadyToRun(thread);
-    value++;
-    interrupt->SetLevel(oldLevel);
+  thread = queue->Remove();
+  if (thread != NULL)  // make thread ready, consuming the V immediately
+    scheduler->ReadyToRun(thread);
+  value++;
+  interrupt->SetLevel(oldLevel);
 }
 
 #ifdef USER_PROGRAM
@@ -104,98 +97,131 @@ Semaphore::V()
 //	This is used to destroy a user semaphore
 //----------------------------------------------------------------------
 
-void
-Semaphore::Destroy()
-{
-    Thread *thread;
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+void Semaphore::Destroy() {
+  Thread* thread;
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-    while ( (thread = queue->Remove() ) != NULL )	// make thread ready
-	scheduler->ReadyToRun(thread);
+  while ((thread = queue->Remove()) != NULL)  // make thread ready
+    scheduler->ReadyToRun(thread);
 
-    interrupt->SetLevel(oldLevel);
+  interrupt->SetLevel(oldLevel);
 }
 
 #endif
 
-
-// Dummy functions -- so we can compile our later assignments 
-// Note -- without a correct implementation of Condition::Wait(), 
+// Dummy functions -- so we can compile our later assignments
+// Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
+// Constructor: Initialize the lock with a given debug name
 Lock::Lock(const char* debugName) {
-
+  name = (char*)debugName;  // Store the debug name
+  // Create a semaphore with an initial value of 1
+  semaphore = new Semaphore(debugName, 1);
+  holderThread = NULL;  // No thread owns the lock initially
 }
-
-
+// Destructor: Clean up the lock
 Lock::~Lock() {
-
+  delete semaphore;  // Delete the semaphore associated with the lock
 }
 
-
+// Acquire the lock
 void Lock::Acquire() {
-
+  // Disable interrupts to make operation atomic
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  // Wait for the semaphore to be available and decrement its value
+  semaphore->P();
+  // Set the current thread as the owner of the lock
+  holderThread = currentThread;
+  interrupt->SetLevel(oldLevel);  // Re-enable interrupts
 }
 
-
+// Release the lock
 void Lock::Release() {
-
+  // Disable interrupts to make operation atomic
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  // Check that the current thread owns the lock
+  ASSERT(isHeldByCurrentThread());
+  // Clear the owner of the lock
+  holderThread = NULL;
+  // Increment the semaphore value and wake up a waiting thread
+  semaphore->V();
+  // if necessary
+  interrupt->SetLevel(oldLevel);  // Re-enable interrupts
 }
 
-
+// Check if the lock is held by the current thread
 bool Lock::isHeldByCurrentThread() {
-   return false;
+  // Compare current thread to the lock's owner
+  return currentThread == holderThread;
 }
 
-
+// Constructor: Initialize the condition variable with a given debug name
 Condition::Condition(const char* debugName) {
-
+  name = (char*)debugName;        // Store the debug name
+  waitQueue = new List<Thread*>;  // Initialize the wait queue for threads
 }
 
-
+// Destructor: Clean up the condition variable
 Condition::~Condition() {
-
+  delete waitQueue;  // Delete the wait queue
 }
 
-
-void Condition::Wait( Lock * conditionLock ) {
-
+// Wait for a condition to be signaled while releasing the associated lock
+void Condition::Wait(Lock* conditionLock) {
+  // Disable interrupts to make operation atomic
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  ASSERT(conditionLock->isHeldByCurrentThread());  // Check that the current
+  // thread owns the lock
+  conditionLock->Release();          // Release the lock
+  waitQueue->Append(currentThread);  // Add the current thread to the wait queue
+  currentThread->Sleep();            // Put the current thread to sleep
+  conditionLock->Acquire();          // Acquire the lock again
+  interrupt->SetLevel(oldLevel);     // Re-enable interrupts
 }
 
-
-void Condition::Signal( Lock * conditionLock ) {
-
+// Signal a waiting thread on the condition variable and release the associated
+// lock
+void Condition::Signal(Lock* conditionLock) {
+  // Disable interrupts to make operation atomic
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  ASSERT(conditionLock->isHeldByCurrentThread());  // Check that the current
+                                                   // thread owns the lock
+  Thread* thread = waitQueue->Remove();  // Remove a thread from the wait queue
+  if (thread != NULL) {                  // If a thread was waiting
+    scheduler->ReadyToRun(thread);       // Make the thread ready to run
+  }
+  interrupt->SetLevel(oldLevel);  // Re-enable interrupts
 }
 
-
-void Condition::Broadcast( Lock * conditionLock ) {
+// Wake up all waiting threads on the condition variable and release the
+// associated lock
+void Condition::Broadcast(Lock* conditionLock) {
+  // Disable interrupts to make operation atomic
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  // Check that the current thread owns the lock
+  ASSERT(conditionLock->isHeldByCurrentThread());
+  // Wake up all threads in the wait queue
+  Thread* thread;
+  // while there are threads in the wait queue
+  while ((thread = waitQueue->Remove()) != NULL) {
+    // Make the thread ready to run
+    scheduler->ReadyToRun(thread);
+  }
+  interrupt->SetLevel(oldLevel);
 }
-
 
 // Mutex class
-Mutex::Mutex( const char * debugName ) {
+Mutex::Mutex(const char* debugName) {}
 
-}
+Mutex::~Mutex() {}
 
-Mutex::~Mutex() {
+void Mutex::Lock() {}
 
-}
-
-void Mutex::Lock() {
-
-}
-
-void Mutex::Unlock() {
-
-}
-
+void Mutex::Unlock() {}
 
 // Barrier class
-Barrier::Barrier( const char * debugName, int count ) {
-}
+Barrier::Barrier(const char* debugName, int count) {}
 
-Barrier::~Barrier() {
-}
+Barrier::~Barrier() {}
 
-void Barrier::Wait() {
-}
-
+void Barrier::Wait() {}
