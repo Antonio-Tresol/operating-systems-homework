@@ -18,4 +18,6 @@ Proyecto1
 
 addrspace
 - hexdump -n 128 ../test/halt
+- page table: mapa de memoria de como un programa ejecutable va estar en memoria.
+- cambiar addrspace.cc lineas 85-96 cambiar para que dos procesos puedan correr al mismo tiempo (la idea es manera lo de la memoria virtual y lo de la memoria fisica).
 

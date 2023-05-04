@@ -226,7 +226,6 @@ void NachOS_Shutdown() {  // System call 25
 //
 // And don't forget to increment the pc before returning. (Or else you'll
 // loop making the same system call forever!
-//
 //	"which" is the kind of exception.  The list of possible exceptions
 //	are in machine.h.
 //----------------------------------------------------------------------
