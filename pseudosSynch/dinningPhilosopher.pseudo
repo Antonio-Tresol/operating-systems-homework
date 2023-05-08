@@ -1,0 +1,33 @@
+monitor DiningPhilosophers {
+    enum {THINKING, HUNGRY, EATING} state[5];  // State of each philosopher
+    condition self[5];  // Condition variable for each philosopher
+
+    void pickup(int i) {
+        state[i] = HUNGRY;  // Set philosopher's state to HUNGRY
+        checkAndStartEating(i);  // Check if the philosopher can eat
+        if (state[i] != EATING) {
+            self[i].wait();  // Wait for the condition variable if not eating
+        }
+    }
+
+    void putdown(int i) {
+        state[i] = THINKING;  // Set philosopher's state to THINKING
+        checkAndStartEating((i - 1 + 5) % 5);  // Check if the left neighbor can eat
+        checkAndStartEating((i + 1) % 5);  // Check if the right neighbor can eat
+    }
+
+    void checkAndStartEating(int i) {
+        if ((state[(i - 1 + 5) % 5] != EATING) && // Check if the left neighbor is not eating
+            (state[i] == HUNGRY) && // check if I am hungry (i.e. I want to eat)
+            (state[(i + 1) % 5] != EATING)) { // Check if the right neighbor is not eating
+            state[i] = EATING;  // Set philosopher's state to EATING
+            self[i].signal(); //  Signal the condition variable for this philosopher
+        }
+    }
+
+    initialization code() {
+        for (int i = 0; i < 5; i++) {
+            state[i] = THINKING;  # Initialize all philosophers to THINKING
+        }
+    }
+}
