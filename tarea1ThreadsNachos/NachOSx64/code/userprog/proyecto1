@@ -1,0 +1,33 @@
+Proyecto1
+
+- userprog
+- vamos a trabajar en addrspace () y en exception.cc (para desarrollar todos los system calls -se pueden usar los syscall de linux-)
+	- revisar los comentarios en  exception y syscall.h
+	- hacer que un usuario pueda correr un programa en en nachos
+	- para eso hay que desarrollar system call api.
+	- read/write stdin solo lectura 0
+	- read/write stdout solo escritura 1
+	- read/write std error solo lectura 1
+	- revisar machine.h para poder hacer las instrucciones con maquina como leer y escribir en registros (necesario para las syscall de nachos)
+	- memoria de la maquina es un array bytes ya paginado (32 pagina de 128bytes)
+	- darle vuelta a las declaraciones de read y write (estetico)
+	_ corre programa de usuario make depend, make, ;/nachos -x ../test/halt
+	- cada instruccion es de 4 bytes
+	- hacer una funcion para aumentar el program counter (hay que aumentar el contador en cada system call).
+	- hay instrucciones donde no hay que sumarle al program counter, en system calls si de fijo.
+
+addrspace
+- hexdump -n 128 ../test/halt
+- page table: mapa de memoria de como un programa ejecutable va estar en memoria.
+- cambiar addrspace.cc lineas 85-96 cambiar para que dos procesos puedan correr al mismo tiempo (la idea es manera lo de la memoria virtual y lo de la memoria fisica).
+- addfba00
+- ba00addf
+- 00badfad numero magico.
+- como cargar programa para que hayan varios procesos corriendo al mismo tiempo?
+  - ver cuales paginas estan ocupadas y cuales estan libres, para cargar el programa en las paginas libres. Usamos un bitmap para saber cuales paginas estan libres y cuales estan ocupadas. Cada vez que se carga un programa se tiene que actualizar el bitmap.
+  - poner el bitmap como variable del sistema operativo (en system.h con extern y en system.cc con lineas 36, lineas 188).
+  - en el addrsspace hay que hacer usar bitmap para asignar paginas.
+  - hay que cambiar como se carga el text, usando readAt, y que lea tamaño de pagina en pagina. Asignar el primero a la primera pagina logica (x pagina fisica), el segundo a la segunda pagina logica (y pagina fisica), etc.
+  - exit debe devolver memoria
+  - 
+
