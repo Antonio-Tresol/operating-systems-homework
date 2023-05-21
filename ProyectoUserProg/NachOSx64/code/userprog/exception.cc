@@ -21,10 +21,17 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
+#include <unistd.h>
+
 #include "copyright.h"
 #include "syscall.h"
 #include "system.h"
 
+void NachOS_IncreasePC() {
+  machine->WriteRegister(PrevPCReg, PCReg);
+  machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+  machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+}  // returnFromSystemCall
 /*
  *  System call interface: Halt()
  */
@@ -38,6 +45,9 @@ void NachOS_Halt() {  // System call 0
  *  System call interface: void Exit( int )
  */
 void NachOS_Exit() {  // System call 1
+  currentThread->Yield();
+  currentThread->Finish();
+  NachOS_IncreasePC();
 }
 
 /*
@@ -64,16 +74,77 @@ void NachOS_Create() {  // System call 4
 void NachOS_Open() {  // System call 5
 }
 
-/*
+/**
  *  System call interface: OpenFileId Write( char *, int, OpenFileId )
  */
-void NachOS_Write() {  // System call 6
+void NachOS_Write() {  // System call 7
+  // Read parameters from registers
+  int inputBuffer = machine->ReadRegister(4);
+  int bufferSize = machine->ReadRegister(5);
+  OpenFileId fileDescriptor = machine->ReadRegister(6);
+
+  // Print the NachOS handle
+  DEBUG('a', "Writing to file %d (NachOS handle)...\n", fileDescriptor);
+
+  // Create a buffer of size bufferSize
+  char buffer[bufferSize];
+  int translation;
+
+  // Read bufferSize number of bytes from the input buffer into our local buffer
+  for (int i = 0; i < bufferSize; i++) {
+    machine->ReadMem(inputBuffer + i, 1, &translation);
+    buffer[i] = translation;
+  }
+
+  // Check file descriptor
+  switch (fileDescriptor) {
+    case ConsoleInput:
+      // Writing to console input is not allowed
+      machine->WriteRegister(2, -1);
+      printf("Writing to console input is not allowed.\n");
+      break;
+
+    case ConsoleOutput:
+      // Writing to console output
+      printf("Writing to console...\n\n");
+      printf("< %s \n\n", buffer);
+      // Write the number of bytes written to the output buffer
+      machine->WriteRegister(2, bufferSize);
+      break;
+
+    default:
+      // Writing to file
+      DEBUG('a', "Writing to file %d (NachOS handle) ...\n", fileDescriptor);
+      // Check if the file is open
+      bool fileIsOpen =
+          currentThread->space->getOpenFiles()->isOpened(fileDescriptor);
+      if (fileIsOpen) {
+        // Get the UNIX handle
+        int unixFileHandle =
+            currentThread->space->getOpenFiles()->getUnixHandle(fileDescriptor);
+        // Write to the UNIX file
+        write(unixFileHandle, buffer, bufferSize);
+        // Write the number of bytes written to the register
+        machine->WriteRegister(2, bufferSize);
+        // Print the success message
+        DEBUG('a',
+              "Successfully wrote %d bytes to file %d (UNIX) | %d "
+              "(NachOS).\n",
+              bufferSize, unixFileHandle, fileDescriptor);
+      } else {
+        // If the file is not open, write -1 to the register
+        machine->WriteRegister(2, -1);
+      }
+      break;
+  }
+  // Update the Program Counter registers
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: OpenFileId Read( char *, int, OpenFileId )
  */
-void NachOS_Read() {  // System call 7
+void NachOS_Read() {  // System call 6
 }
 
 /*

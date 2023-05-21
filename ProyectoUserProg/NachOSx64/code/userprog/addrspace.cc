@@ -64,48 +64,74 @@ static void SwapHeader(NoffHeader *noffH) {
 AddrSpace::AddrSpace(OpenFile *executable) {
   // This is a header for the NOFF (NACHOS Object File Format) binary format.
   NoffHeader noffH;
-  unsigned int i, size;
-
+  u_int64_t i, size;
+  openFiles = new OpenFilesTable();
   // Read the NOFF header from the start of the executable file.
   executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
-
   // Check if the file is in NOFF format and if not, swap the header.
   if ((noffH.noffMagic != NOFFMAGIC) &&
       (WordToHost(noffH.noffMagic) == NOFFMAGIC))
     SwapHeader(&noffH);
-
   // Assert that the file is indeed in NOFF format.
   ASSERT(noffH.noffMagic == NOFFMAGIC);
 
+  //***************Variables for Readability**********************************//
+  // Fetch the size of the code segment from the header
+  u_int64_t codeSize = noffH.code.size;
+  // Fetch the size of the initialized data segment from the header
+  u_int64_t dataSize = noffH.initData.size;
+  // Fetch the start of the code segment in the executable file
+  u_int64_t codeStart = noffH.code.inFileAddr;
+  // Fetch the start of the data segment in the executable file
+  u_int64_t dataStart = noffH.initData.inFileAddr;
+  // Fetch the virtual address of the start of the code segment
+  u_int64_t codeVirtualStart = noffH.code.virtualAddr;
+  // Fetch the virtual address of the start of the data segment
+  u_int64_t dataVirtualStart = noffH.initData.virtualAddr;
+  // Calculate the end of the code segment in the executable file
+  u_int64_t codeEnd = codeStart + codeSize;
+  // Calculate the end of the data segment in the executable file
+  u_int64_t dataEnd = dataStart + dataSize;
+  // Calculate how many pages the data segment occupies
+  u_int64_t dataPagesCount = divRoundUp(dataSize, PageSize);
+  // Calculate how many pages the code segment occupies
+  u_int64_t codePagesCount = divRoundUp(codeSize, PageSize);
+  // Calculate how many pages the uninitData segment and the stack together
+  // occupy
+  u_int64_t uninitDataSize = noffH.uninitData.size;
+  // Calculate how many pages the uninitData segment and the stack together
+  // occupy
+  u_int64_t uninitDataPagesCount = divRoundUp(uninitDataSize, PageSize);
+  // Calculate how many pages the stack occupies
+  u_int64_t stackPagesCount = divRoundUp(UserStackSize, PageSize);
+  //******************Variables for Readability*******************************//
+  DEBUG('a',
+        "Executable segments: code size %d, data size %d, uniunitialized data "
+        "size %d\n",
+        codeSize, dataSize, uninitDataSize);
   // Calculate the size of the address space required for this executable.
   // This is done by adding the size of the code, initialized data and
   // uninitialized data segments and the user stack size.
-  size = noffH.code.size + noffH.initData.size + noffH.uninitData.size +
-         UserStackSize;
-
+  size = codeSize + dataSize + uninitDataSize + UserStackSize;
   // Calculate the number of pages required by rounding up the size to the
   // nearest page boundary.
   numPages = divRoundUp(size, PageSize);
-
   // Recalculate the size in case it was rounded up to the nearest page
   // boundary.
   size = numPages * PageSize;
-
   // Assert that the number of pages required does not exceed the number of
   // physical pages available.
   ASSERT(numPages <= NumPhysPages);
-
   // Print debug information about the address space being initialized.
-  DEBUG('a', "Initializing address space, num pages %d, size %d\n", numPages,
-        size);
-
+  DEBUG('a', "Initializing address space, number of pages %d, size %d\n",
+        numPages, size);
   // Set up the translation between virtual and physical addresses by creating
   // the page table.
   pageTable = new TranslationEntry[numPages];
   for (i = 0; i < numPages; i++) {
     pageTable[i].virtualPage =
         i;  // For now, set the virtual page number to the physical page number.
-    pageTable[i].physicalPage = i;
+    pageTable[i].physicalPage = memBitMap->Find();
     pageTable[i].valid = true;
     pageTable[i].use = false;
     pageTable[i].dirty = false;
@@ -113,26 +139,57 @@ AddrSpace::AddrSpace(OpenFile *executable) {
     // we could set its pages to be read-only.
     pageTable[i].readOnly = false;
   }
-
   // Zero out the entire address space, to zero the uninitialized data segment
   // and the stack segment.
+  // TODO: we have to change this to zero out only the pages that are allocated
   bzero(machine->mainMemory, size);
-
   // Copy the code and data segments into memory.
+  // If the code segment size is greater than 0, it needs to be loaded into
+  // memory
   if (noffH.code.size > 0) {
     DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
-          noffH.code.virtualAddr, noffH.code.size);
-    executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
-                       noffH.code.size, noffH.code.inFileAddr);
+          codeVirtualStart, codeSize);
+    // Loop over each page in the code segment
+    for (i = 0; i < codePagesCount; i++) {
+      // Calculate the start of the current page in the file
+      u_int64_t start = codeStart + i * PageSize;
+      // Calculate the size of the page. If this is the last page and it is not
+      // full, adjust the size to avoid reading past the end of the segment.
+      u_int64_t sizeOfPage =
+          (start + PageSize > codeEnd) ? codeEnd - start : PageSize;
+      // Read the page into memory. Note that the virtual page number is
+      // converted to a physical page number using the page table.
+      executable->ReadAt(
+          &(machine->mainMemory[pageTable[i].physicalPage * PageSize]),
+          sizeOfPage, start);
+    }
   }
+  // If the data segment size is greater than 0, it needs to be loaded into
+  // memory
   if (noffH.initData.size > 0) {
     DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
-          noffH.initData.virtualAddr, noffH.initData.size);
-    executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
-                       noffH.initData.size, noffH.initData.inFileAddr);
+          dataVirtualStart, dataSize);
+    // Loop over each page in the data segment
+    for (i = 0; i < dataPagesCount; i++) {
+      // Calculate the start of the current page in the file
+      u_int64_t start = dataStart + i * PageSize;
+      // Calculate the size of the page. If this is the last page and it is not
+      // full, adjust the size to avoid reading past the end of the segment.
+      u_int64_t sizeOfPage =
+          (start + PageSize > dataEnd) ? dataEnd - start : PageSize;
+      // The data segment starts after the code segment in virtual memory, so
+      // adjust the virtual page number accordingly.
+      u_int64_t virtualPage = codePagesCount + i;
+      // Read the page into memory. Note that the virtual page number is
+      // converted to a physical page number using the page table.
+      executable->ReadAt(
+          &(machine
+                ->mainMemory[pageTable[virtualPage].physicalPage * PageSize]),
+          sizeOfPage, start);
+    }
   }
 }
-
+OpenFilesTable *AddrSpace::getOpenFiles() { return openFiles; }
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
 // 	Dealloate an address space.  Nothing for now!

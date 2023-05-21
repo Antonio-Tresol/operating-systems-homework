@@ -8,6 +8,7 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include "bitmap.h"
 #include "copyright.h"
 #include "interrupt.h"
 #include "scheduler.h"
