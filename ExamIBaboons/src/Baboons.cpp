@@ -2,10 +2,10 @@
 
 Baboons::Baboons(std::int64_t maxBaboonsWaiting, std::int64_t ropesCount) {
   this->maxBaboonsWaiting = maxBaboonsWaiting;
+  this->waitingBaboons = 0;
   for (std::int64_t i = 0; i < ropesCount; i++) {
     this->ropes.push_back(Rope());
   }
-  this->waitingBaboons = 0;
 }
 
 void Baboons::Baboon(std::int64_t rope) {
@@ -33,11 +33,15 @@ void Baboons::Baboon(std::int64_t rope) {
   }
 }
 
-Baboons::~Baboons() {}
+Baboons::~Baboons() {
+  for (std::uint64_t i = 0; i < this->ropes.size(); i++) {
+    this->ropes[i].~Rope();
+  }
+}
 
 std::int64_t Baboons::howManyBaboonsWaiting() {
   std::int64_t totalBaboonsWaiting = 0;
-  for (std::int64_t i = 0; i < this->ropes.size(); i++) {
+  for (std::uint64_t i = 0; i < this->ropes.size(); i++) {
     totalBaboonsWaiting += this->ropes[i].getBaboonsCount();
   }
   return totalBaboonsWaiting;
@@ -45,7 +49,7 @@ std::int64_t Baboons::howManyBaboonsWaiting() {
 int64_t Baboons::getRopeWithMostBaboons() {
   std::int64_t maxBaboonsFound = 0;
   std::int64_t ropeWithMostBaboonsIndex = 0;
-  for (std::int64_t i = 0; i < this->ropes.size(); i++) {
+  for (std::uint64_t i = 0; i < this->ropes.size(); i++) {
     if (this->ropes[i].getBaboonsCount() > maxBaboonsFound) {
       maxBaboonsFound = this->ropes[i].getBaboonsCount();
       ropeWithMostBaboonsIndex = i;
