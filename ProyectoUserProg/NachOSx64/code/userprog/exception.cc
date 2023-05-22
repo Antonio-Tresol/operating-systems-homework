@@ -21,7 +21,10 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
+#include <fcntl.h>
 #include <unistd.h>
+
+#include <string>
 
 #include "copyright.h"
 #include "syscall.h"
@@ -66,12 +69,71 @@ void NachOS_Join() {  // System call 3
  *  System call interface: void Create( char * )
  */
 void NachOS_Create() {  // System call 4
+  // Read the file name from user memory, as indicated by register 4.
+  int64_t fileNameAddress = machine->ReadRegister(4);
+  char fileName[FILENAME_MAX + 1];  // buffer for the file name
+  int fileNameChar;  // Character buffer to read the file name one character at
+                     // a time.
+  unsigned int fileNameLen = 0;  // Length of the file name
+  // Read the file name from user memory.
+  do {
+    machine->ReadMem(fileNameAddress + fileNameLen, 1, &fileNameChar);
+    fileName[fileNameLen++] = fileNameChar;
+  } while (fileNameChar != 0 && fileNameLen < FILENAME_MAX);
+  fileName[fileNameLen] = '\0';  // Null-terminate the C-string.
+  if (fileNameLen <= FILENAME_MAX) {
+    // Create the file with the specified name.
+    // read and write permissions for the user
+    int status = creat(fileName, S_IRUSR | S_IWUSR);
+    if (status == -1) {
+      printf("Unable to create the file: %s\n", fileName);
+      // Set return value to -1 to signify error
+      machine->WriteRegister(2, -1);
+    } else {
+      printf("Created file: %s\n", fileName);
+      OpenFileId openFileId = static_cast<OpenFileId>(status);
+      openFileId = currentThread->space->getOpenFiles()->Open(openFileId);
+      // Set return value to 0 to signify success
+      machine->WriteRegister(2, 0);
+    }
+  } else {
+    printf("File name too long: %s\n", fileName);
+    // Set return value to -1 to signify error
+    machine->WriteRegister(2, -1);
+  }
+  // Advance program counter
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: OpenFileId Open( char * )
  */
 void NachOS_Open() {  // System call 5
+  int64_t fileNameAddress = machine->ReadRegister(4);
+
+  int32_t nameCharBuffer = 0;
+  std::string fileName;  // Create string object
+
+  do {
+    machine->ReadMem(fileNameAddress + fileName.size(), 1, &nameCharBuffer);
+    if (nameCharBuffer != 0) {
+      // Add character to string
+      fileName.push_back(static_cast<char>(nameCharBuffer));
+    }
+  } while (nameCharBuffer != 0);  // ends on end of file character
+  int fd = open(fileName.c_str(), O_RDWR | O_APPEND);
+  if (fd == -1) {
+    machine->WriteRegister(2, -1);
+    NachOS_IncreasePC();
+    return;
+  }
+  OpenFileId openFileId = static_cast<OpenFileId>(fd);
+
+  openFileId = currentThread->space->getOpenFiles()->Open(openFileId);
+
+  machine->WriteRegister(2, openFileId);
+
+  NachOS_IncreasePC();
 }
 
 /**
@@ -101,13 +163,11 @@ void NachOS_Write() {  // System call 7
     case ConsoleInput:
       // Writing to console input is not allowed
       machine->WriteRegister(2, -1);
-      printf("Writing to console input is not allowed.\n");
       break;
 
     case ConsoleOutput:
-      // Writing to console output
-      printf("Writing to console...\n\n");
-      printf("< %s \n\n", buffer);
+      write(1, buffer, bufferSize);
+      write(1, "\n", 1);
       // Write the number of bytes written to the output buffer
       machine->WriteRegister(2, bufferSize);
       break;
@@ -145,12 +205,98 @@ void NachOS_Write() {  // System call 7
  *  System call interface: OpenFileId Read( char *, int, OpenFileId )
  */
 void NachOS_Read() {  // System call 6
+  // Obtain the parameters from the machine registers
+  int bufferAddr = machine->ReadRegister(4);
+  int size = machine->ReadRegister(5);
+  OpenFileId descriptorFile = machine->ReadRegister(6);
+
+  // Allocate a buffer to store the data that's read
+  char* readBuffer = new char[size + 1];
+
+  switch (descriptorFile) {
+    case ConsoleInput: {
+      // Read from console
+      scanf("%s", readBuffer);
+
+      int readChar = 0;
+      // As long as we haven't reached the size or end of string
+      while (readChar < size && readChar < (int)strnlen(readBuffer, size) &&
+             readBuffer[readChar] != 0) {
+        // Write character into memory
+        machine->WriteMem(bufferAddr + readChar, 1, readBuffer[readChar]);
+        readChar++;
+      }
+
+      // Write number of characters read to register 2
+      machine->WriteRegister(2, readChar);
+      break;
+    }
+    case ConsoleOutput:
+      // Console output descriptor is invalid for reading, report error (-1)
+      machine->WriteRegister(2, -1);
+      break;
+
+    default:  // Should be able to read any other file
+      // Retrieve the table of open files
+      OpenFilesTable* openFilesTable = currentThread->space->getOpenFiles();
+
+      // Check if file is open
+      if (openFilesTable->isOpened(descriptorFile)) {
+        // Read from the Unix file
+        int bytesRead = read(openFilesTable->getUnixHandle(descriptorFile),
+                             readBuffer, size);
+        // For all bytes read
+        for (int charPos = 0; charPos < bytesRead; charPos++) {
+          // Write each character into memory
+          machine->WriteMem(bufferAddr + charPos, 1, readBuffer[charPos]);
+        }
+        // Write number of bytes read to register 2
+        machine->WriteRegister(2, bytesRead);
+      } else {
+        // File not open, report error (-1)
+        machine->WriteRegister(2, -1);
+      }
+      break;
+  }
+  // Don't forget to free the memory
+  delete[] readBuffer;
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: void Close( OpenFileId )
  */
 void NachOS_Close() {  // System call 8
+  // Get the OpenFileId from register 4.
+  OpenFileId fileId = machine->ReadRegister(4);
+
+  // Check if file is open.
+  OpenFilesTable* openFilesTable = currentThread->space->getOpenFiles();
+  if (openFilesTable->isOpened(fileId)) {
+    // Get Unix file descriptor
+    int unixFileId = openFilesTable->getUnixHandle(fileId);
+
+    // Close the file.
+    int status = close(unixFileId);
+
+    if (status == -1) {
+      printf("Unable to close the file with OpenFileId: %d\n", fileId);
+      // Set return value to -1 to signify error.
+      machine->WriteRegister(2, -1);
+    } else {
+      // Remove file reference from open files table
+      openFilesTable->Close(fileId);
+      // Set return value to 0 to signify success.
+      machine->WriteRegister(2, 0);
+    }
+  } else {
+    printf("No open file with OpenFileId: %d\n", fileId);
+    // Set return value to -1 to signify error.
+    machine->WriteRegister(2, -1);
+  }
+
+  // Advance program counter.
+  NachOS_IncreasePC();
 }
 
 /*

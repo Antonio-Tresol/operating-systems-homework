@@ -17,7 +17,7 @@ OpenFilesTable::OpenFilesTable() {
   openFiles[1] = 1;
 }
 
-int OpenFilesTable::Open(int UnixHandle, int idThread) {
+int OpenFilesTable::Open(int UnixHandle) {
   int handle = 0;
 
   bool fileIsOpen = 0;
