@@ -1,9 +1,8 @@
 #include "Rope.hpp"
 
-Rope::Rope() { this->baboonsCount = 0; }
+Rope::Rope() {}
 
 void Rope::crossCanyon() {
-  std::int64_t letPass = static_cast<std::int64_t>(baboonsCount);
   this->baboonsCondition.notify_all();
   this->baboonsCount = 0;
 }
@@ -19,7 +18,6 @@ int64_t Rope::getBaboonsCount() {
 void Rope::waitOnRope() {
   std::unique_lock<std::mutex> lock(baboonsMutex);
   this->baboonsCondition.wait(lock);
-  this->baboonsCount--;
 }
 
 void Rope::incrementBaboonsCount() { this->baboonsCount++; }

@@ -1,0 +1,7 @@
+EXPLICACION: 
+El programa funciona para resolver el problema de sincronizacion de los babuinos en el examen.
+Sin embargo, como este problema asume un flujo infinito de babuinos. Al darsele un flujo finito de babuinos, el programa se puede quedar en un estado de deadlock.
+esto se dada la logica del enunciado:
+- cuando un babuino quiere cruzar se le asigna una cuerda. El entra al monitor y pregunta si hay suficientes babuinos esperando (en todas la cuerdas) para pasar. Si no hay suficientes, el babuino busca la cuerda con mas babuinos y la hace pasar. Si esa cuerda era la suya entonces el babuino pasa. Si no era la suya, el babuino se queda esperando en la cuerda que le toco.
+- con una cantidad finita de babuinos (digamos 4), 2 cuerda y 2 de maximos Babuinos Esperando, es posible que 3 babuinos sean asignados a cuerda 1 y 1 babuino a cuerda 2. Si el babuino asignado a cuerda 2 llega de ultimo eso haria que deje pasar a la cuerda con mas babuinos (en ese momento cuerda 1 y cuerda 2 van a tener exactamente 1 babuino), indiferentemente si elige como cuerda la 1 o la 2, un babuino se quedara esperando pues solo una cuerda va pasar.
+- esto solo ocurre claro si hay un flujo finito de babuinos. siu hubieran infinitos babuinos, el babuino que se quedo esperando en la cuerda 2, eventualmente pasaria conformen van llegando babuinos.

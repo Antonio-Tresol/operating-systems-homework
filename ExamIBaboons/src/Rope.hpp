@@ -39,10 +39,15 @@ class Rope {
    * arriving to the rope to cross the canyon.
    */
   void incrementBaboonsCount();
+  /**
+   * @brief decrementBaboonsCount function is called by a baboon when it is
+   * crossing the canyon.
+   */
+  void setBaboonsCountToZero();
 
  private:
-  std::atomic<std::int64_t> baboonsCount;    /// BabuinosCount
-  std::condition_variable baboonsCondition;  /// BabuinosCondition
-  std::mutex baboonsMutex;                   /// BabuinosMutex
+  std::atomic<std::int64_t> baboonsCount{0};  /// BabuinosCount
+  std::condition_variable baboonsCondition;   /// BabuinosCondition
+  std::mutex baboonsMutex;                    /// BabuinosMutex
 };
 #endif  // ROPE_HPP

@@ -8,6 +8,7 @@ using std::exception;
 using std::ofstream;
 using std::rethrow_if_nested;
 using std::string;
+using std::stringstream;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
@@ -19,18 +20,24 @@ ofstream Logger::file{};
 high_resolution_clock::time_point Logger::start{high_resolution_clock::now()};
 
 void Logger::print(const string &message) {
-  cout << "[" << duration() << " ms]"
-       << "[INFO]: " << message << endl;
+  stringstream ss;
+  ss << "[" << duration() << " ms]"
+     << "[INFO]: " << message << endl;
+  cout << ss.str();
 }
 
 void Logger::info(const string &message) {
-  cout << "[" << duration() << " ms]"
-       << "[INFO]: " << message << endl;
+  stringstream ss;
+  ss << "[" << duration() << " ms]"
+     << "[INFO]: " << message << endl;
+  cout << ss.str();
 }
 
 void Logger::error(const string &message) {
-  cout << "[" << duration() << " ms]"
-       << "[ERROR]: " << message << endl;
+  stringstream ss;
+  ss << "[" << duration() << " ms]"
+     << "[ERROR]: " << message << endl;
+  cout << ss.str();
 }
 
 void Logger::error(const string &message, const exception &e) {
@@ -44,7 +51,10 @@ u_int64_t Logger::duration() {
 }
 
 void Logger::print_exception(const exception &e, int level) {
-  cout << "Caused by: " << e.what() << endl;
+  stringstream ss;
+  ss << "Caused by: " << e.what() << endl;
+  cout << ss.str();
+
   try {
     rethrow_if_nested(e);
   } catch (const exception &ne) {

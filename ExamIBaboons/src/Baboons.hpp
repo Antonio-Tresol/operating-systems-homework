@@ -24,13 +24,17 @@ class Baboons {
    * @param rope is the rope that the baboon will use to cross the canyon.
    * (int64_t)
    */
-  void Baboon(std::int64_t rope);
+  void Baboon(std::int64_t rope, std::int64_t baboonId);
+  /**
+   * @brief Destroy the Baboons monitor object
+   */
   ~Baboons();
 
  private:
   std::atomic<std::int64_t> waitingBaboons;  /// BabuinosCountTotal
   std::int64_t maxBaboonsWaiting;            /// B
-  std::vector<Rope> ropes;                   /// vector de cuerdas
+  std::vector<Rope*> ropes;                  /// vector de cuerdas
+  std::mutex baboonsMonitorMutex;            /// BabuinosMutex
   /**
    * @brief computes the number of baboons waiting to cross by adding the number
    * of baboons waiting on each rope.

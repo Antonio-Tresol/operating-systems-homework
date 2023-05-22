@@ -5,28 +5,21 @@
 #include "Logger.hpp"
 
 using baboon = std::thread;
-Logger log;
+Logger logger;
+/**
+ * @brief Get a random rope number
+ */
+std::int64_t getRandomRopeNumber(std::int64_t numberOfRopes);
+/**
+ * @brief Simulate a baboon
+ */
+void simulBaboon(Baboons &baboons, std::int64_t numberOfRopes, int64_t id);
 
-std::int64_t getRandomRopeNumber(std::int64_t numberOfRopes) {
-  std::random_device dev;
-  std::mt19937 rng(dev());
-  std::uniform_int_distribution<std::mt19937::result_type> dist(
-      0, numberOfRopes - 1);
-  return static_cast<std::int64_t>(dist(rng));
-}
-
-void simulBaboon(Baboons &baboons, std::int64_t numberOfRopes, int64_t id) {
-  std::int64_t ropeNumber = getRandomRopeNumber(numberOfRopes);
-  log.info("Baboon " + std::to_string(id) + " is will wait on rope " +
-           std::to_string(ropeNumber) + " to cross the canyon");
-  baboons.Baboon(ropeNumber);
-  log.info("Baboon " + std::to_string(id) + " has crossed the canyon");
-}
 int main(int argc, char const *argv[]) {
-  log.info("Starting Baboon simulation");
+  logger.info("Starting Baboon simulation");
   if (argc < 4) {  //
-    log.error("Not enough arguments");
-    log.error(
+    logger.error("Not enough arguments");
+    logger.error(
         "Usage: ./ExamIBaboons <numberOfRopes> <MaxWaitingBaboons> "
         "<numberOfSimulatedBaboons>");
     return -1;
@@ -35,9 +28,12 @@ int main(int argc, char const *argv[]) {
     std::int64_t numberOfRopes = std::stoll(argv[1]);
     std::int64_t maxWaitingBaboons = std::stoll(argv[2]);
     std::int64_t numberOfSimulatedBaboons = std::stoll(argv[3]);
-    log.info("Simulation parameters:" + std::to_string(numberOfRopes) + " " +
-             std::to_string(maxWaitingBaboons) + " " +
-             std::to_string(numberOfSimulatedBaboons));
+    logger.info("Simulation parameters: " + std::to_string(numberOfRopes) +
+                " ropes, " + std::to_string(maxWaitingBaboons) +
+                " as the maximun number of waiting baboons, " +
+                std::to_string(numberOfSimulatedBaboons) +
+                " simulated baboons");
+    // build monitor
     Baboons baboons(numberOfRopes, maxWaitingBaboons);
     std::vector<baboon> simulatedBaboons;
 
@@ -50,7 +46,23 @@ int main(int argc, char const *argv[]) {
     }
 
   } catch (const std::exception &e) {
-    log.error("Exception caught", e);
+    logger.error("Exception caught", e);
   }
   return 0;
+}
+
+std::int64_t getRandomRopeNumber(std::int64_t numberOfRopes) {
+  std::random_device dev;
+  std::mt19937 rng(dev());
+  std::uniform_int_distribution<std::mt19937::result_type> dist(
+      0, numberOfRopes - 1);
+  return static_cast<std::int64_t>(dist(rng));
+}
+
+void simulBaboon(Baboons &baboons, std::int64_t numberOfRopes, int64_t id) {
+  std::int64_t ropeNumber = getRandomRopeNumber(numberOfRopes);
+  logger.info("Baboon " + std::to_string(id) + " has been assigned rope " +
+              std::to_string(ropeNumber) + " to cross the canyon");
+  baboons.Baboon(ropeNumber, id);
+  logger.info("Baboon " + std::to_string(id) + " has crossed the canyon");
 }
