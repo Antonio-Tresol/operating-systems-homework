@@ -15,7 +15,7 @@ OpenFilesTable::OpenFilesTable() {
   filesMap->Mark(0);
   filesMap->Mark(1);
   // Setting usage counter to 0
-  usage = 0;
+  usage = 1;
   // Set the Unix handles of the first two entries as 0 and 1, representing
   // stdin and stdout
   openFiles[0] = 0;
@@ -97,4 +97,14 @@ OpenFilesTable::~OpenFilesTable() {
     delete[] openFiles;
     delete filesMap;
   }
+}
+
+void OpenFilesTable::addThread() {
+  // Increase usage counter
+  usage++;
+}
+
+void OpenFilesTable::delThread() {
+  // Decrease usage counter
+  usage--;
 }

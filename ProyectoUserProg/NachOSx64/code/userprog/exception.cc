@@ -48,11 +48,18 @@ void NachOS_Halt() {  // System call 0
  *  System call interface: void Exit( int )
  */
 void NachOS_Exit() {  // System call 1
+  // Read the exit status from the 4th register.
+  int exitStatus = machine->ReadRegister(4);
+  // Yield control to the next thread.
   currentThread->Yield();
+  // Print exit status
+  printf("Thread %s exited with status %d\n", currentThread->getName(),
+         exitStatus);
+  // Finish the current thread's execution.
   currentThread->Finish();
+  // Advance program counter.
   NachOS_IncreasePC();
 }
-
 /*
  *  System call interface: SpaceId Exec( char * )
  */
@@ -294,16 +301,33 @@ void NachOS_Close() {  // System call 8
   NachOS_IncreasePC();
 }
 
-/*
- *  System call interface: void Fork( void (*func)() )
- */
 void NachOS_Fork() {  // System call 9
+  // Get the address of the function to be run by the new thread from
+  // register 4.
+  int64_t functionAddress = machine->ReadRegister(4);
+  // Create a new Thread.
+  // TODO: this ptr is not being deleted because it is not being saved
+  // anywhere
+  Thread* newThread = new Thread("Forked thread");
+  // Duplicate the address space of the current thread for the new thread.
+  newThread->space = currentThread->space;
+  newThread->openFiles = currentThread->openFiles;
+  currentThread->openFiles->addThread();
+  //   Setup the new thread's stack to run the function at functionAddress.
+  newThread->Fork(reinterpret_cast<VoidFunctionPtr>(functionAddress), 0);
+  newThread->setStatus(READY);
+  // Add the new thread to the scheduler.
+  scheduler->ReadyToRun(newThread);
+  // Advance program counter.
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: void Yield()
  */
 void NachOS_Yield() {  // System call 10
+  currentThread->Yield();
+  NachOS_IncreasePC();
 }
 
 /*

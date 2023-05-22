@@ -14,9 +14,9 @@ class OpenFilesTable {
   int getUnixHandle(
       int NachosHandle);  // Devuelve el UNIX handle, según el thread
                           // correspondiente y el nachos handle
-  // void addThread();		// If a user thread is using this table, add it
-  // void delThread();		// If a user thread is using this table, delete
-  // it
+  void addThread();       // If a user thread is using this table, add it
+  void delThread();       // If a user thread is using this table, delete
+                          // it
 
   // void Print();               // Print contents
 
