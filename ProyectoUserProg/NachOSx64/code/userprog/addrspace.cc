@@ -65,7 +65,6 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   // This is a header for the NOFF (NACHOS Object File Format) binary format.
   NoffHeader noffH;
   u_int64_t i, size;
-  openFiles = new OpenFilesTable();
   // Read the NOFF header from the start of the executable file.
   executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
   // Check if the file is in NOFF format and if not, swap the header.
@@ -147,7 +146,6 @@ AddrSpace::AddrSpace(OpenFile *executable) {
                        PageSize, startPositionOnFile);
   }
 }
-OpenFilesTable *AddrSpace::getOpenFiles() { return openFiles; }
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
 // 	Dealloate an address space.  Nothing for now!

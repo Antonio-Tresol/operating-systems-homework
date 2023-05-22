@@ -80,6 +80,9 @@ bool OpenFilesTable::isOpened(int nachosHandle) {
 }
 
 OpenFilesTable::~OpenFilesTable() {
-  delete[] openFiles;
-  delete[] filesMap;
+  usage--;
+  if (usage == 0) {
+    delete[] openFiles;
+    delete filesMap;
+  }
 }

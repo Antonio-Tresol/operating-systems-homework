@@ -92,7 +92,7 @@ void NachOS_Create() {  // System call 4
     } else {
       printf("Created file: %s\n", fileName);
       OpenFileId openFileId = static_cast<OpenFileId>(status);
-      openFileId = currentThread->space->getOpenFiles()->Open(openFileId);
+      openFileId = currentThread->openFiles->Open(openFileId);
       // Set return value to 0 to signify success
       machine->WriteRegister(2, 0);
     }
@@ -129,7 +129,7 @@ void NachOS_Open() {  // System call 5
   }
   OpenFileId openFileId = static_cast<OpenFileId>(fd);
 
-  openFileId = currentThread->space->getOpenFiles()->Open(openFileId);
+  openFileId = currentThread->openFiles->Open(openFileId);
 
   machine->WriteRegister(2, openFileId);
 
@@ -176,12 +176,11 @@ void NachOS_Write() {  // System call 7
       // Writing to file
       DEBUG('a', "Writing to file %d (NachOS handle) ...\n", fileDescriptor);
       // Check if the file is open
-      bool fileIsOpen =
-          currentThread->space->getOpenFiles()->isOpened(fileDescriptor);
+      bool fileIsOpen = currentThread->openFiles->isOpened(fileDescriptor);
       if (fileIsOpen) {
         // Get the UNIX handle
         int unixFileHandle =
-            currentThread->space->getOpenFiles()->getUnixHandle(fileDescriptor);
+            currentThread->openFiles->getUnixHandle(fileDescriptor);
         // Write to the UNIX file
         write(unixFileHandle, buffer, bufferSize);
         // Write the number of bytes written to the register
@@ -237,14 +236,12 @@ void NachOS_Read() {  // System call 6
       break;
 
     default:  // Should be able to read any other file
-      // Retrieve the table of open files
-      OpenFilesTable* openFilesTable = currentThread->space->getOpenFiles();
-
       // Check if file is open
-      if (openFilesTable->isOpened(descriptorFile)) {
+      if (currentThread->openFiles->isOpened(descriptorFile)) {
         // Read from the Unix file
-        int bytesRead = read(openFilesTable->getUnixHandle(descriptorFile),
-                             readBuffer, size);
+        int bytesRead =
+            read(currentThread->openFiles->getUnixHandle(descriptorFile),
+                 readBuffer, size);
         // For all bytes read
         for (int charPos = 0; charPos < bytesRead; charPos++) {
           // Write each character into memory
@@ -271,7 +268,7 @@ void NachOS_Close() {  // System call 8
   OpenFileId fileId = machine->ReadRegister(4);
 
   // Check if file is open.
-  OpenFilesTable* openFilesTable = currentThread->space->getOpenFiles();
+  OpenFilesTable* openFilesTable = currentThread->openFiles;
   if (openFilesTable->isOpened(fileId)) {
     // Get Unix file descriptor
     int unixFileId = openFilesTable->getUnixHandle(fileId);
