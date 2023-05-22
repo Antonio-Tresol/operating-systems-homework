@@ -30,6 +30,6 @@ class OpenFilesTable {
   // su propio bitmap vector<BitMap*> *vecMapsOpenFiles; // Por ahora, se
   // comenta esto para usar otra solución
   u_int64_t usage;  // How many threads are using this table
-  static const int MAX_OPEN_FILES = 15;
+  static const int16_t MAX_OPEN_FILES = 15;
 };
 #endif  // OPENFILESTABLE_H

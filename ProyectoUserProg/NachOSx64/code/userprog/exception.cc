@@ -272,10 +272,8 @@ void NachOS_Close() {  // System call 8
   if (openFilesTable->isOpened(fileId)) {
     // Get Unix file descriptor
     int unixFileId = openFilesTable->getUnixHandle(fileId);
-
     // Close the file.
     int status = close(unixFileId);
-
     if (status == -1) {
       printf("Unable to close the file with OpenFileId: %d\n", fileId);
       // Set return value to -1 to signify error.
