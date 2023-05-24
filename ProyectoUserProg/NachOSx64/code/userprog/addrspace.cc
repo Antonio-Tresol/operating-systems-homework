@@ -146,11 +146,64 @@ AddrSpace::AddrSpace(OpenFile *executable) {
                        PageSize, startPositionOnFile);
   }
 }
+
+AddrSpace::AddrSpace(AddrSpace *parentAdrSpace) {
+  // Copy number of pages and the open files table from parent address space.
+  this->numPages = parentAdrSpace->numPages;
+
+  // The location of the page in the physical memory.
+  u_int32_t pageLocation = 0;
+
+  // Size of shared memory is all sectors except the stack.
+  u_int32_t sharedMemory = this->numPages - divRoundUp(UserStackSize, PageSize);
+
+  // Set up the translation from virtual to physical addresses.
+  pageTable = new TranslationEntry[this->numPages];
+
+  // Set shared memory for the code and data segments as same for the parent
+  // process.
+  for (u_int32_t page = 0; page < sharedMemory; page++) {
+    pageLocation = parentAdrSpace->pageTable[page].physicalPage;
+    pageTable[page].virtualPage = page;
+    pageTable[page].physicalPage = pageLocation;
+    pageTable[page].valid = true;
+    pageTable[page].use = false;
+    pageTable[page].dirty = false;
+    pageTable[page].readOnly = false;
+  }
+  // Allocate new space for the stack.
+  for (u_int32_t pagesLeft = sharedMemory; pagesLeft < this->numPages;
+       pagesLeft++) {
+    // Find an empty page.
+    int newLocation = memBitMap->Find();
+    // If no page is available...
+    if (newLocation == -1) {
+      // Clear all the pages marked previously.
+      for (u_int32_t pageToErase = sharedMemory; pageToErase < pagesLeft;
+           pageToErase++) {
+        memBitMap->Clear(this->pageTable[pageToErase].physicalPage);
+      }
+      // Report error and terminate the thread.
+      fprintf(stderr,
+              "Could not allocate necessary memory, terminating thread\n");
+      currentThread->Finish();
+    }
+    pageLocation = newLocation;
+    // For now, set virtual page # = physical page #.
+    pageTable[pagesLeft].virtualPage = pagesLeft;
+    // The location is the position within the bitmap.
+    pageTable[pagesLeft].physicalPage = pageLocation;
+    pageTable[pagesLeft].valid = true;
+    pageTable[pagesLeft].use = false;
+    pageTable[pagesLeft].dirty = false;
+    pageTable[pagesLeft].readOnly = false;
+  }
+}
+
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
 // 	Dealloate an address space.  Nothing for now!
 //----------------------------------------------------------------------
-
 AddrSpace::~AddrSpace() { delete pageTable; }
 
 //----------------------------------------------------------------------

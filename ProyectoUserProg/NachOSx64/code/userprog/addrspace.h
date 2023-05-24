@@ -26,7 +26,16 @@ class AddrSpace {
                                     // initializing it with the program
                                     // stored in the file "executable"
   ~AddrSpace();                     // De-allocate an address space
-
+  /**
+   * @brief Constructor for creating an address space for a child process.
+   *
+   * This function initializes the address space of a child process by copying
+   * the shared code and data segments from the parent process's address space.
+   * It also allocates a new stack for the child process.
+   *
+   * @param parentAdrSpace The address space of the parent process.
+   */
+  AddrSpace(AddrSpace *parentAdrSpace);
   void InitRegisters();  // Initialize user-level CPU registers,
                          // before jumping to user code
 
