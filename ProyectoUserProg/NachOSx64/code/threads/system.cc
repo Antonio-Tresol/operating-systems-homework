@@ -33,9 +33,11 @@ FileSystem *fileSystem;
 SynchDisk *synchDisk;
 #endif
 
-#ifdef USER_PROGRAM  // requires either FILESYS or FILESYS_STUB
-Machine *machine;    // user program memory and registers
-BitMap *memBitMap;   // bitmap para manejar los espacios de memoria
+#ifdef USER_PROGRAM   // requires either FILESYS or FILESYS_STUB
+Machine *machine;     // user program memory and registers
+BitMap *memBitMap;    // bitmap to handle memory
+BitMap *threadIdMap;  // bitmap to handle process id
+std::map<int32_t, UserThreadData> *userThreadsData;
 #endif
 
 #ifdef NETWORK
@@ -168,6 +170,8 @@ void Initialize(int argc, char **argv) {
 #ifdef USER_PROGRAM
   machine = new Machine(debugUserProg);  // this must come first
   memBitMap = new BitMap(NumPhysPages);
+  threadIdMap = new BitMap(MAX_THREADS);
+  userThreadsData = new std::map<int32_t, UserThreadData>();
 #endif
 
 #ifdef FILESYS
@@ -200,6 +204,8 @@ void Cleanup() {
 #ifdef USER_PROGRAM
   delete machine;
   delete memBitMap;
+  delete threadIdMap;
+  delete userThreadsData;
 #endif
 
 #ifdef FILESYS_NEEDED

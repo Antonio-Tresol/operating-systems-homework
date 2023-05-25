@@ -26,9 +26,13 @@
 
 #include <string>
 
+#include "addrspace.h"
 #include "copyright.h"
+#include "machine.h"
+#include "synch.h"
 #include "syscall.h"
 #include "system.h"
+#include "thread.h"
 
 /**
  * @brief The entry point for a new user thread in NachOS.
@@ -66,6 +70,35 @@ void NachosForkThread(void* p) {
   // We should never get past this point because a new thread has taken over
   // execution. If we do reach this point, there is an error.
   ASSERT(false);
+}
+
+void NachosExecThread(void* p) {  // for 64 bits version
+  // The address where the filename is stored is saved in register 4 so the
+  // child can access it
+  int64_t fileNameAddress = machine->ReadRegister(4);
+  std::string fileName;  // Create string object to hold the filename
+  int32_t nameCharBuffer = 0;
+  do {
+    machine->ReadMem(fileNameAddress + fileName.size(), 1, &nameCharBuffer);
+    if (nameCharBuffer != 0) {
+      // Add character to string
+      fileName.push_back(static_cast<char>(nameCharBuffer));
+    }
+  } while (nameCharBuffer != 0);  // Ends when we encounter the null character
+  DEBUG('x', "Filename: %s\n", fileName.c_str());
+  OpenFile* executable = fileSystem->Open("../test/copy");
+  AddrSpace* space;
+  if (executable == nullptr) {
+    DEBUG('x', "Unable to open file %s\n", fileName.c_str());
+    return;
+  }
+  space = new AddrSpace(executable);
+  currentThread->space = space;
+  delete executable;       // Close the file
+  space->InitRegisters();  // Set the initial register values
+  space->RestoreState();   // Load page table register
+  machine->Run();          // Jump to the user program
+  ASSERT(false);           // machine->Run never returns;
 }
 
 /**
@@ -107,6 +140,10 @@ void NachOS_Exit() {  // System call 1
   DEBUG('a', "Thread %s exited with status %d\n", currentThread->getName(),
         exitStatus);
   // Finish the current thread's execution.
+  if (currentThread->isUserThread) {
+    UserThreadData data = userThreadsData->at(currentThread->getThreadId());
+    data.semaphore->V();
+  }
   currentThread->Finish();
   // Advance program counter.
   NachOS_IncreasePC();
@@ -115,12 +152,70 @@ void NachOS_Exit() {  // System call 1
  *  System call interface: SpaceId Exec( char * )
  */
 void NachOS_Exec() {  // System call 2
+  // we need to create a new thread and run the executable
+  Thread* newThread = new Thread("Exec Thread");
+
+  // mark me as a user thread
+  newThread->isUserThread = true;
+  // we get an id for the new thread
+  int32_t threadId = threadIdMap->Find();
+  // we check if there is an available thread
+  if (threadId == -1) {
+    DEBUG('x', "No more threads available\n");
+    // we return -1 to indicate that there is no more threads available
+    machine->WriteRegister(2, -1);
+    NachOS_IncreasePC();
+    return;
+  }
+  // we set the thread id
+  newThread->setThreadId(threadId);
+  // we insert the user thread data in the map
+  UserThreadData threadData;
+  threadData.thread = newThread;
+  threadData.exitStatus = 0;
+  threadData.semaphore = new Semaphore("User Thread Semaphore", 0);
+  // we fill the adress space of the new thread with the current thread's for
+  // now
+  userThreadsData->insert({threadId, threadData});
+  newThread->space = new AddrSpace(currentThread->space);
+  // we fork the new thread using the function NachosExecThread that will run
+  // the executable
+  newThread->Fork(NachosExecThread, nullptr);
+  // we return the thread id
+  machine->WriteRegister(2, threadId);
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: int Join( SpaceId )
  */
 void NachOS_Join() {  // System call 3
+  // we get the thread id of the thread we want to join
+  int32_t threadId = machine->ReadRegister(4);
+  // we check if the thread id is valid
+  if (threadIdMap->Test(threadId)) {
+    // we get the user thread data
+    UserThreadData threadData = userThreadsData->at(threadId);
+    // we wait for the thread to finish
+    threadData.semaphore->P();
+    // we get the exit status of the thread
+    int exitStatus = threadData.exitStatus;
+    // delete the semaphore
+    delete threadData.semaphore;
+    // delete the thread
+    delete threadData.thread;
+    // we remove the user thread data from the map
+    userThreadsData->erase(threadId);
+    // we free the thread id
+    threadIdMap->Clear(threadId);
+    // we return the exit status
+    machine->WriteRegister(2, exitStatus);
+    NachOS_IncreasePC();
+  } else {
+    // we return -1 to indicate that the thread id is invalid
+    machine->WriteRegister(2, -1);
+    NachOS_IncreasePC();
+  }
 }
 
 /**
@@ -134,34 +229,35 @@ void NachOS_Join() {  // System call 3
 void NachOS_Create() {  // System call 4
   // Read the file name from user memory, as indicated by register 4.
   int64_t fileNameAddress = machine->ReadRegister(4);
-  char fileName[FILENAME_MAX + 1];  // Buffer for the file name.
+  // Buffer for the file name as a string.
+  std::string fileName;
   int fileNameChar;  // Character buffer to read the file name one character at
                      // a time.
-  u_int32_t fileNameLen = 0;  // Length of the file name.
   // Read the file name from user memory.
   do {
-    machine->ReadMem(fileNameAddress + fileNameLen, 1, &fileNameChar);
-    fileName[fileNameLen++] = fileNameChar;
-  } while (fileNameChar != 0 && fileNameLen < FILENAME_MAX);
-  // Null-terminate the C-string.
-  fileName[fileNameLen] = '\0';
+    machine->ReadMem(fileNameAddress + fileName.size(), 1, &fileNameChar);
+    // Add characters to fileName string if not null character.
+    if (fileNameChar != 0) {
+      fileName.push_back(static_cast<char>(fileNameChar));
+    }
+  } while (fileNameChar != 0 && fileName.size() < FILENAME_MAX);
   // Check if the file name length is valid.
-  if (fileNameLen <= FILENAME_MAX) {
+  if (fileName.size() <= FILENAME_MAX) {
     // Create the file with the specified name and read-write permissions for
     // the user.
-    int status = creat(fileName, S_IRUSR | S_IWUSR);
+    int status = creat(fileName.c_str(), S_IRUSR | S_IWUSR);
     // Check if the file was successfully created.
     if (status == -1) {
-      DEBUG('k', "Unable to create file: %s\n", fileName);
+      DEBUG('k', "Unable to create file: %s\n", fileName.c_str());
     } else {
-      DEBUG('k', "Created file: %s\n", fileName);
+      DEBUG('k', "Created file: %s\n", fileName.c_str());
       OpenFileId openFileId = static_cast<OpenFileId>(status);
       // Open the newly created file.
       openFileId = currentThread->openFiles->Open(openFileId);
     }
   } else {
     // If the file name is too long, report an error.
-    DEBUG('k', "File name too long: %s\n", fileName);
+    DEBUG('k', "File name too long: %s\n", fileName.c_str());
   }
   // Increment the program counter.
   NachOS_IncreasePC();
@@ -227,13 +323,15 @@ void NachOS_Write() {  // System call 7
   // write to the same file.
   // Debug message about the NachOS file handle we're writing to
   DEBUG('w', "Writing to file %d (NachOS handle)...\n", fileDescriptor);
-  // Create a local buffer of size bufferSize
-  char buffer[bufferSize];
+  // Create a local string buffer
+  std::string buffer;
+  //  Reserve space in the string to improve performance
+  buffer.reserve(bufferSize);
   int translation;
   // Read bufferSize number of bytes from the input buffer into our local buffer
   for (int32_t i = 0; i < bufferSize; i++) {
     machine->ReadMem(inputBuffer + i, 1, &translation);
-    buffer[i] = translation;
+    buffer.push_back(static_cast<char>(translation));
   }
   // Check the file descriptor to determine where to write data
   switch (fileDescriptor) {
@@ -244,7 +342,7 @@ void NachOS_Write() {  // System call 7
     case ConsoleOutput:
       DEBUG('w', "Writing to console output...\n");
       // Write the buffer to the console output
-      write(1, buffer, bufferSize);
+      write(1, buffer.c_str(), buffer.size());
       write(1, "\n", 1);
       break;
     default:
@@ -257,13 +355,13 @@ void NachOS_Write() {  // System call 7
         int32_t unixFileHandle =
             currentThread->openFiles->getUnixHandle(fileDescriptor);
         // Write the buffer to the UNIX file
-        write(unixFileHandle, buffer, bufferSize);
+        write(unixFileHandle, buffer.c_str(), buffer.size());
         // Write the number of characters written to register 2
-        machine->WriteRegister(2, bufferSize);
+        machine->WriteRegister(2, buffer.size());
         // Debug message for successful file write
         DEBUG('w',
               "Successfully wrote %d bytes to file %d (UNIX) | %d (NachOS).\n",
-              bufferSize, unixFileHandle, fileDescriptor);
+              buffer.size(), unixFileHandle, fileDescriptor);
       } else {
         // If the file is not open, report error (-1)
         DEBUG('w', "File %d (NachOS handle) is not open!\n", fileDescriptor);
@@ -272,6 +370,7 @@ void NachOS_Write() {  // System call 7
   }
   // Increment the program counter
   // TODO: signal semaphore here if multiple threads are trying to write to the
+  // same file
   NachOS_IncreasePC();
 }
 
@@ -375,7 +474,6 @@ void NachOS_Close() {  // System call 8
     // signify error.
     DEBUG('c', "Unable to close the file with OpenFileId: %d\n", fileId);
   }
-
   // Increment the program counter.
   NachOS_IncreasePC();
 }
@@ -404,7 +502,6 @@ void NachOS_Fork() {
   childThread->Fork(NachosForkThread, (void*)(size_t)machine->ReadRegister(4));
   // Adjust PC registers.
   NachOS_IncreasePC();
-
   DEBUG('f', "Exiting Fork System call\n");
 }
 

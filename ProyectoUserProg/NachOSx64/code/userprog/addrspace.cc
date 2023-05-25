@@ -101,7 +101,7 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   size = numPages * PageSize;
   //******************Variables for Readability*******************************//
   DEBUG('a',
-        "Executable segments: code size %d, data size %d, uniunitialized data "
+        "Executable segments: code size %d, data size %d, unitialized data "
         "size %d\n",
         codeSize, dataSize, uninitDataSize);
 

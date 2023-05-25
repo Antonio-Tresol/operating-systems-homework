@@ -98,6 +98,11 @@ class Thread {
   void setStatus(ThreadStatus st) { status = st; }
   const char* getName() { return (name); }
   void Print() { printf("%s, ", name); }
+  bool isUserThread{false};
+#ifdef USER_PROGRAM
+  int32_t getThreadId() { return threadId; }
+  void setThreadId(int32_t id) { threadId = id; }
+#endif
 
  private:
   // some of the private data for this class is listed above
@@ -116,7 +121,7 @@ class Thread {
   // A thread running a user program actually has *two* sets of CPU registers --
   // one for its state while executing user code, one for its state
   // while executing kernel code.
-
+  int32_t threadId;
   int userRegisters[NumTotalRegs];  // user-level CPU register state
 
  public:

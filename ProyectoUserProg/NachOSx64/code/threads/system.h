@@ -31,9 +31,21 @@ extern Statistics *stats;            // performance metrics
 extern Timer *timer;                 // the hardware alarm clock
 
 #ifdef USER_PROGRAM
+#include <map>
+
 #include "machine.h"
-extern Machine *machine;   // user program memory and registers
-extern BitMap *memBitMap;  // bitmap para manejar los espacios de memoria
+#include "synch.h"
+#define MAX_THREADS 20
+extern Machine *machine;     // user program memory and registers
+extern BitMap *memBitMap;    // bitmap to handle memory
+extern BitMap *threadIdMap;  // bitmap  to handle process id
+/// Struct to handle info about a user thread
+struct UserThreadData {
+  Thread *thread;        // to save the handle of the thread
+  int32_t exitStatus;    // to save the exit status of the thread
+  Semaphore *semaphore;  // to wait for the thread to finish
+};
+extern std::map<int32_t, UserThreadData> *userThreadsData;
 #endif
 
 #ifdef FILESYS_NEEDED  // FILESYS or FILESYS_STUB
