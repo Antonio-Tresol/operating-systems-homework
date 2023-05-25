@@ -65,6 +65,10 @@ Thread::~Thread() {
 #ifdef USER_PROGRAM
   this->openFiles->delThread();
   delete openFiles;
+  // if it is a user thread, we need to delete the address space too
+  if (isUserThread) {
+    delete space;
+  }
 #endif
 }
 

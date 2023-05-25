@@ -73,18 +73,8 @@ void NachosForkThread(void* p) {
 }
 
 void NachosExecThread(void* p) {  // for 64 bits version
-  // The address where the filename is stored is saved in register 4 so the
-  // child can access it
-  int64_t fileNameAddress = machine->ReadRegister(4);
-  std::string fileName;  // Create string object to hold the filename
-  int32_t nameCharBuffer = 0;
-  do {
-    machine->ReadMem(fileNameAddress + fileName.size(), 1, &nameCharBuffer);
-    if (nameCharBuffer != 0) {
-      // Add character to string
-      fileName.push_back(static_cast<char>(nameCharBuffer));
-    }
-  } while (nameCharBuffer != 0);  // Ends when we encounter the null character
+  std::string fileName =
+      userThreadsData->at(currentThread->getThreadId()).executableName;
   DEBUG('x', "Filename: %s\n", fileName.c_str());
   OpenFile* executable = fileSystem->Open("../test/copy");
   AddrSpace* space;
@@ -93,12 +83,14 @@ void NachosExecThread(void* p) {  // for 64 bits version
     return;
   }
   space = new AddrSpace(executable);
+  DEBUG('x', "AddrSpace created\n");
   currentThread->space = space;
   delete executable;       // Close the file
   space->InitRegisters();  // Set the initial register values
   space->RestoreState();   // Load page table register
-  machine->Run();          // Jump to the user program
-  ASSERT(false);           // machine->Run never returns;
+  DEBUG('x', "InitRegisters and RestoreState done, ready to run\n");
+  machine->Run();  // Jump to the user program
+  ASSERT(false);   // machine->Run never returns;
 }
 
 /**
@@ -134,27 +126,44 @@ void NachOS_Halt() {  // System call 0
 void NachOS_Exit() {  // System call 1
   // Read the exit status from the 4th register.
   int exitStatus = machine->ReadRegister(4);
-  // Yield control to the next thread.
-  currentThread->Yield();
   // Print exit status
-  DEBUG('a', "Thread %s exited with status %d\n", currentThread->getName(),
+  DEBUG('x', "Thread %s exited with status %d\n", currentThread->getName(),
         exitStatus);
   // Finish the current thread's execution.
   if (currentThread->isUserThread) {
+    DEBUG('x', "User thread %s exiting\n", currentThread->getName());
     UserThreadData data = userThreadsData->at(currentThread->getThreadId());
     data.semaphore->V();
+    DEBUG('x', "Semaphore V done\n");
+    // userThreadsData->erase(currentThread->getThreadId());
   }
   currentThread->Finish();
   // Advance program counter.
+  threadIdMap->Clear(currentThread->getThreadId());
+  currentThread->Yield();
   NachOS_IncreasePC();
 }
 /*
  *  System call interface: SpaceId Exec( char * )
  */
 void NachOS_Exec() {  // System call 2
+  // Read the file name from user memory, as indicated by register 4.
+  int64_t fileNameAddress = machine->ReadRegister(4);
+  // Buffer for the file name as a string.
+  std::string fileName;
+  int fileNameChar;  // Character buffer to read the file name one character at
+                     // a time.
+  // Read the file name from user memory.
+  do {
+    machine->ReadMem(fileNameAddress + fileName.size(), 1, &fileNameChar);
+    // Add characters to fileName string if not null character.
+    if (fileNameChar != 0) {
+      fileName.push_back(static_cast<char>(fileNameChar));
+    }
+  } while (fileNameChar != 0 && fileName.size() < FILENAME_MAX);
+  DEBUG('x', "Filename: %s\n", fileName.c_str());
   // we need to create a new thread and run the executable
   Thread* newThread = new Thread("Exec Thread");
-
   // mark me as a user thread
   newThread->isUserThread = true;
   // we get an id for the new thread
@@ -171,27 +180,28 @@ void NachOS_Exec() {  // System call 2
   newThread->setThreadId(threadId);
   // we insert the user thread data in the map
   UserThreadData threadData;
-  threadData.thread = newThread;
+  threadData.executableName = fileName;
   threadData.exitStatus = 0;
   threadData.semaphore = new Semaphore("User Thread Semaphore", 0);
   // we fill the adress space of the new thread with the current thread's for
   // now
   userThreadsData->insert({threadId, threadData});
-  newThread->space = new AddrSpace(currentThread->space);
+  // newThread->space = new AddrSpace(currentThread->space);
   // we fork the new thread using the function NachosExecThread that will run
   // the executable
-  newThread->Fork(NachosExecThread, nullptr);
+  newThread->Fork(NachosExecThread, (void*)fileName.c_str());
   // we return the thread id
   machine->WriteRegister(2, threadId);
   NachOS_IncreasePC();
 }
 
-/*
+/**
  *  System call interface: int Join( SpaceId )
  */
 void NachOS_Join() {  // System call 3
   // we get the thread id of the thread we want to join
   int32_t threadId = machine->ReadRegister(4);
+  DEBUG('x', "Joining thread %d\n", threadId);
   // we check if the thread id is valid
   if (threadIdMap->Test(threadId)) {
     // we get the user thread data
@@ -202,8 +212,6 @@ void NachOS_Join() {  // System call 3
     int exitStatus = threadData.exitStatus;
     // delete the semaphore
     delete threadData.semaphore;
-    // delete the thread
-    delete threadData.thread;
     // we remove the user thread data from the map
     userThreadsData->erase(threadId);
     // we free the thread id
