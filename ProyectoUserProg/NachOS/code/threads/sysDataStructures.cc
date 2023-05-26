@@ -105,6 +105,15 @@ Semaphore* ThreadTable::getSemToJoinIn(int16_t threadId) {
 SysSemaphoreTable::SysSemaphoreTable() {
   semMap = new BitMap(MAX_SEMAPHORES);
   lock = new Lock("Semaphore Table Lock");
+  // set the semaphore 0 as the console semaphore
+  // set the semaphore 1 file writing semaphore
+  // set the semaphore 2 file creating semaphore
+  semMap->Mark(0);
+  semMap->Mark(1);
+  semMap->Mark(2);
+  table[0] = new Semaphore("Console Semaphore", 1);
+  table[1] = new Semaphore("File Writing Semaphore", 1);
+  table[2] = new Semaphore("File Creating Semaphore", 1);
 }
 
 SysSemaphoreTable::~SysSemaphoreTable() {

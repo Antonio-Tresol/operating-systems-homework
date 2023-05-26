@@ -43,7 +43,6 @@
 #ifdef USER_PROGRAM
 #include "addrspace.h"
 #include "machine.h"
-#include "table.h"
 // Thread kind (SYS, USR_FORK, USR_EXEC)
 enum ThreadKind { MAIN, USR_FORK, USR_EXEC };
 #endif
@@ -131,7 +130,6 @@ class Thread {
   void setKind(ThreadKind k) { kind = k; }
   ThreadKind getKind() { return kind; }
   AddrSpace* space;  // User code this thread is running.
-  OpenFilesTable* openFiles;
 #endif
 };
 

@@ -65,6 +65,7 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   // This is a header for the NOFF (NACHOS Object File Format) binary format.
   NoffHeader noffH;
   u_int32_t i, size;
+  openFiles = std::make_shared<OpenFilesTable>();
   // Read the NOFF header from the start of the executable file.
   executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
   // Check if the file is in NOFF format and if not, swap the header.
@@ -150,7 +151,8 @@ AddrSpace::AddrSpace(OpenFile *executable) {
 AddrSpace::AddrSpace(AddrSpace *parentAdrSpace) {
   // Copy number of pages and the open files table from parent address space.
   this->numPages = parentAdrSpace->numPages;
-
+  // share the open files table with the parent process
+  this->openFiles = parentAdrSpace->openFiles;
   // The location of the page in the physical memory.
   u_int32_t pageLocation = 0;
 

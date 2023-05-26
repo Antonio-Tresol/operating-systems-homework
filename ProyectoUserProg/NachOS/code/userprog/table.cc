@@ -15,7 +15,25 @@ OpenFilesTable::OpenFilesTable() {
   filesMap->Mark(0);
   filesMap->Mark(1);
   // Setting usage counter to 0
-  usage = 1;
+  // Set the Unix handles of the first two entries as 0 and 1, representing
+  // stdin and stdout
+  openFiles[0] = 0;
+  openFiles[1] = 1;
+}
+
+OpenFilesTable::OpenFilesTable(int32_t MaxFilesOpen) {
+  // Initializing array to store open file handles
+  openFiles = new int[MaxFilesOpen];
+  // Setting all elements of array to -1 to indicate no open files
+  for (int16_t i = 0; i < MaxFilesOpen; i++) {
+    openFiles[i] = -1;
+  }
+  // Creating a BitMap to manage open files
+  filesMap = new BitMap(MaxFilesOpen);
+  // Marking the 0th and 1st file as open (usually standard input and output)
+  filesMap->Mark(0);
+  filesMap->Mark(1);
+  // Setting usage counter to 0
   // Set the Unix handles of the first two entries as 0 and 1, representing
   // stdin and stdout
   openFiles[0] = 0;
@@ -90,21 +108,6 @@ bool OpenFilesTable::isOpened(int nachosHandle) {
 
 // Destructor for OpenFilesTable class
 OpenFilesTable::~OpenFilesTable() {
-  // Decrease usage counter
-  usage--;
-  // If no more usage, deallocate dynamic memory
-  if (usage == 0) {
-    delete[] openFiles;
-    delete filesMap;
-  }
-}
-
-void OpenFilesTable::addThread() {
-  // Increase usage counter
-  usage++;
-}
-
-void OpenFilesTable::delThread() {
-  // Decrease usage counter
-  usage--;
+  delete[] openFiles;
+  delete filesMap;
 }

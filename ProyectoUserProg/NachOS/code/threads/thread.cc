@@ -41,7 +41,6 @@ Thread::Thread(const char *threadName) {
   threadId = 0;
 #ifdef USER_PROGRAM
   space = nullptr;
-  openFiles = nullptr;
 #endif
 }
 

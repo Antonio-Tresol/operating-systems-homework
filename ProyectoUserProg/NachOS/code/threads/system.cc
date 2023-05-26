@@ -36,6 +36,9 @@ SynchDisk *synchDisk;
 #ifdef USER_PROGRAM  // requires either FILESYS or FILESYS_STUB
 Machine *machine;    // user program memory and registers
 BitMap *memBitMap;
+ThreadTable *threadTable;
+SysSemaphoreTable *sysSemaphoreTable;
+OpenFilesTable *sysOpenFilesTable;
 #endif
 
 #ifdef NETWORK
@@ -169,7 +172,9 @@ void Initialize(int argc, char **argv) {
 #ifdef USER_PROGRAM
   machine = new Machine(debugUserProg);  // this must come first
   memBitMap = new BitMap(NumPhysPages);
-
+  threadTable = new ThreadTable();
+  sysSemaphoreTable = new SysSemaphoreTable();
+  sysOpenFilesTable = new OpenFilesTable(MAX_OPEN_FILES);
 #endif
 
 #ifdef FILESYS
@@ -201,6 +206,10 @@ void Cleanup() {
 
 #ifdef USER_PROGRAM
   delete machine;
+  delete memBitMap;
+  delete threadTable;
+  delete sysSemaphoreTable;
+  delete sysOpenFilesTable;
 #endif
 
 #ifdef FILESYS_NEEDED

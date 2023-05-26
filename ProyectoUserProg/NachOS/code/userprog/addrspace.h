@@ -13,14 +13,19 @@
 #ifndef ADDRSPACE_H
 #define ADDRSPACE_H
 
+#include <memory>
+
 #include "copyright.h"
 #include "filesys.h"
+#include "table.h"
 #include "translate.h"
 
 #define UserStackSize 1024  // increase this as necessary!
 
 class AddrSpace {
  public:
+  // share pointer to a open file table
+  std::shared_ptr<OpenFilesTable> openFiles;
   AddrSpace(OpenFile *executable);  // Create an address space,
                                     // initializing it with the program
                                     // stored in the file "executable"
