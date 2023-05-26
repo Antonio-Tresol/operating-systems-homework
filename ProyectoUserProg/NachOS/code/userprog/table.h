@@ -4,9 +4,8 @@
 #include "bitmap.h"
 class OpenFilesTable {
  public:
-  OpenFilesTable();                      // Initialize
-  OpenFilesTable(int32_t MaxFilesOpen);  // Initialize (with size
-  ~OpenFilesTable();                     // De-allocate
+  OpenFilesTable();   // Initialize
+  ~OpenFilesTable();  // De-allocate
 
   int Open(int UnixHandle);     // Register the file handle
   int Close(int NachosHandle);  // Unregister the file handle
@@ -15,7 +14,7 @@ class OpenFilesTable {
   int getUnixHandle(int NachosHandle);  // Devuelve el UNIX handle, según el
                                         // thread correspondiente y el nachos
                                         // handle it
-
+  void addEntry(int NachosHandle, int UnixHandle);
   // void Print();               // Print contents
 
  private:
@@ -27,6 +26,6 @@ class OpenFilesTable {
   // cada espacio del vector es un thread diferente, cada thread tiene entonces,
   // su propio bitmap vector<BitMap*> *vecMapsOpenFiles; // Por ahora, se
   // comenta esto para usar otra solución
-  static const int16_t MAX_OPEN_FILES = 15;
+  static const int16_t MAX_OPEN_FILES = 128;
 };
 #endif  // OPENFILESTABLE_H

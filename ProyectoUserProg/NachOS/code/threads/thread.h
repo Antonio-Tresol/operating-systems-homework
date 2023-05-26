@@ -103,6 +103,8 @@ class Thread {
   void Print() { printf("%s, ", name); }
   int16_t getThreadId() { return threadId; }
   void setThreadId(int16_t id) { threadId = id; }
+  int16_t getParentId() { return parentId; }
+  void setParentId(int16_t id) { parentId = id; }
 
  private:
   // some of the private data for this class is listed above
@@ -112,7 +114,8 @@ class Thread {
                              // (If NULL, don't deallocate stack)
   ThreadStatus status;       // ready, running or blocked
   const char* name;
-  int16_t threadId;  // thread id
+  int16_t threadId;      // thread id
+  int16_t parentId{-1};  // parent thread id
 
   void StackAllocate(VoidFunctionPtr func, void* arg);
   // Allocate a stack for thread.

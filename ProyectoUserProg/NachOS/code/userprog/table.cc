@@ -21,25 +21,6 @@ OpenFilesTable::OpenFilesTable() {
   openFiles[1] = 1;
 }
 
-OpenFilesTable::OpenFilesTable(int32_t MaxFilesOpen) {
-  // Initializing array to store open file handles
-  openFiles = new int[MaxFilesOpen];
-  // Setting all elements of array to -1 to indicate no open files
-  for (int16_t i = 0; i < MaxFilesOpen; i++) {
-    openFiles[i] = -1;
-  }
-  // Creating a BitMap to manage open files
-  filesMap = new BitMap(MaxFilesOpen);
-  // Marking the 0th and 1st file as open (usually standard input and output)
-  filesMap->Mark(0);
-  filesMap->Mark(1);
-  // Setting usage counter to 0
-  // Set the Unix handles of the first two entries as 0 and 1, representing
-  // stdin and stdout
-  openFiles[0] = 0;
-  openFiles[1] = 1;
-}
-
 // Method to open a file using a Unix handle
 int OpenFilesTable::Open(int UnixHandle) {
   // Placeholder for the file handle
@@ -70,7 +51,7 @@ int OpenFilesTable::Open(int UnixHandle) {
       openFiles[handle] = UnixHandle;
       filesMap->Mark(handle);
     } else {
-      printf("handle: %d", handle);
+      DEBUG('f', "Error: Unix handle already exists in openFiles array\n");
     }
   }
   // Return the handle
@@ -110,4 +91,10 @@ bool OpenFilesTable::isOpened(int nachosHandle) {
 OpenFilesTable::~OpenFilesTable() {
   delete[] openFiles;
   delete filesMap;
+}
+
+// Method to add an entry to the openFiles array
+void OpenFilesTable::addEntry(int NachosHandle, int UnixHandle) {
+  openFiles[NachosHandle] = UnixHandle;
+  filesMap->Mark(NachosHandle);
 }

@@ -111,9 +111,11 @@ SysSemaphoreTable::SysSemaphoreTable() {
   semMap->Mark(0);
   semMap->Mark(1);
   semMap->Mark(2);
-  table[0] = new Semaphore("Console Semaphore", 1);
+  semMap->Mark(3);
+  table[0] = new Semaphore("Console Output Semaphore", 1);
   table[1] = new Semaphore("File Writing Semaphore", 1);
   table[2] = new Semaphore("File Creating Semaphore", 1);
+  table[3] = new Semaphore("Console Input Semaphore", 1);
 }
 
 SysSemaphoreTable::~SysSemaphoreTable() {

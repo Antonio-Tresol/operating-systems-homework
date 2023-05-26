@@ -174,7 +174,7 @@ void Initialize(int argc, char **argv) {
   memBitMap = new BitMap(NumPhysPages);
   threadTable = new ThreadTable();
   sysSemaphoreTable = new SysSemaphoreTable();
-  sysOpenFilesTable = new OpenFilesTable(MAX_OPEN_FILES);
+  sysOpenFilesTable = new OpenFilesTable();
 #endif
 
 #ifdef FILESYS

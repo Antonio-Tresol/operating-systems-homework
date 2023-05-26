@@ -32,7 +32,6 @@ extern Timer *timer;                 // the hardware alarm clock
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "sysDataStructures.h"
-static const int32_t MAX_OPEN_FILES = 60;
 extern Machine *machine;  // user program memory and registers
 extern BitMap *memBitMap;
 extern ThreadTable *threadTable;
