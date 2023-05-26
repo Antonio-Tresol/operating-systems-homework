@@ -35,11 +35,13 @@ const unsigned STACK_FENCEPOST = 0xdeadbeef;
 
 Thread::Thread(const char *threadName) {
   name = threadName;
-  stackTop = NULL;
-  stack = NULL;
+  stackTop = nullptr;
+  stack = nullptr;
   status = JUST_CREATED;
+  threadId = 0;
 #ifdef USER_PROGRAM
-  space = NULL;
+  space = nullptr;
+  openFiles = nullptr;
 #endif
 }
 
