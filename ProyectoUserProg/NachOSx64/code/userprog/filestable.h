@@ -1,7 +1,7 @@
-#include "bitmap.h"
+
 #ifndef OPENFILESTABLE_H
 #define OPENFILESTABLE_H
-
+#include "bitmap.h"
 class OpenFilesTable {
  public:
   OpenFilesTable();   // Initialize
