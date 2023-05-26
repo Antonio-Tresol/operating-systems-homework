@@ -30,10 +30,8 @@ extern Statistics *stats;            // performance metrics
 extern Timer *timer;                 // the hardware alarm clock
 
 #ifdef USER_PROGRAM
-#include "bitmap.h"
 #include "machine.h"
 #include "sysDataStructures.h"
-#include "table.h"
 static const int32_t MAX_OPEN_FILES = 60;
 extern Machine *machine;  // user program memory and registers
 extern BitMap *memBitMap;

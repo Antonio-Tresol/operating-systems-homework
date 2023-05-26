@@ -30,6 +30,10 @@ void StartProcess(const char *filename) {
   }
   space = new AddrSpace(executable);
   currentThread->space = space;
+  currentThread->setKind(MAIN);
+  int16_t threadId = threadTable->AddThread(currentThread, filename);
+  ASSERT(threadId != -1);
+  currentThread->setThreadId(threadId);
 
   delete executable;  // close file
 

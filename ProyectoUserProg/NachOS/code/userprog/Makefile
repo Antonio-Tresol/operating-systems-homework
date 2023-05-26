@@ -167,15 +167,14 @@ main.o: ../threads/main.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../threads/utility.h ../userprog/table.h \
  ../userprog/bitmap.h ../filesys/openfile.h ../machine/translate.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -331,15 +330,14 @@ scheduler.o: ../threads/scheduler.cc /usr/include/stdc-predef.h \
  ../userprog/bitmap.h ../filesys/openfile.h ../machine/translate.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
  ../threads/system.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -496,14 +494,14 @@ synch.o: ../threads/synch.cc /usr/include/stdc-predef.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
  ../threads/system.h ../machine/interrupt.h ../threads/list.h \
  ../threads/scheduler.h ../machine/stats.h ../machine/timer.h \
- ../userprog/bitmap.h ../threads/sysDataStructures.h \
- /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
+ ../threads/sysDataStructures.h /usr/include/c++/11/map \
+ /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -659,15 +657,14 @@ system.o: ../threads/system.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../threads/utility.h ../userprog/table.h \
  ../userprog/bitmap.h ../filesys/openfile.h ../machine/translate.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -825,14 +822,14 @@ thread.o: ../threads/thread.cc /usr/include/stdc-predef.h \
  ../threads/switch.h ../threads/synch.h ../threads/list.h \
  ../threads/system.h ../machine/interrupt.h ../threads/list.h \
  ../threads/scheduler.h ../machine/stats.h ../machine/timer.h \
- ../userprog/bitmap.h ../threads/sysDataStructures.h \
- /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
+ ../threads/sysDataStructures.h /usr/include/c++/11/map \
+ /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -1056,14 +1053,14 @@ threadtest.o: ../threads/threadtest.cc /usr/include/stdc-predef.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
  ../threads/system.h ../machine/interrupt.h ../threads/list.h \
  ../threads/scheduler.h ../machine/stats.h ../machine/timer.h \
- ../userprog/bitmap.h ../threads/sysDataStructures.h \
- /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
+ ../threads/sysDataStructures.h /usr/include/c++/11/map \
+ /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -1358,15 +1355,14 @@ interrupt.o: ../machine/interrupt.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../threads/utility.h ../userprog/table.h \
  ../userprog/bitmap.h ../filesys/openfile.h ../machine/translate.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -1583,15 +1579,14 @@ sysdep.o: ../machine/sysdep.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../threads/utility.h ../userprog/table.h \
  ../userprog/bitmap.h ../filesys/openfile.h ../machine/translate.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -1808,14 +1803,14 @@ timer.o: ../machine/timer.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../userprog/table.h ../userprog/bitmap.h \
  ../filesys/openfile.h ../machine/translate.h ../machine/machine.h \
  ../machine/translate.h ../machine/disk.h ../machine/stats.h \
- ../machine/timer.h ../userprog/bitmap.h ../threads/sysDataStructures.h \
+ ../machine/timer.h ../threads/sysDataStructures.h \
  /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -1972,15 +1967,14 @@ preemptive.o: ../threads/preemptive.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../threads/utility.h ../userprog/table.h \
  ../userprog/bitmap.h ../filesys/openfile.h ../machine/translate.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -2193,7 +2187,7 @@ sysDataStructures.o: ../threads/sysDataStructures.cc \
  /usr/include/c++/11/pstl/execution_defs.h ../filesys/filesys.h \
  ../filesys/openfile.h ../userprog/table.h ../userprog/bitmap.h \
  ../machine/translate.h ../machine/machine.h ../machine/translate.h \
- ../machine/disk.h
+ ../machine/disk.h ../userprog/table.h
 addrspace.o: ../userprog/addrspace.cc /usr/include/stdc-predef.h \
  ../userprog/addrspace.h /usr/include/c++/11/memory \
  /usr/include/c++/11/bits/stl_algobase.h \
@@ -2335,14 +2329,14 @@ addrspace.o: ../userprog/addrspace.cc /usr/include/stdc-predef.h \
  ../threads/utility.h ../threads/scheduler.h ../threads/list.h \
  ../threads/thread.h ../userprog/addrspace.h ../machine/machine.h \
  ../machine/translate.h ../machine/disk.h ../machine/stats.h \
- ../machine/timer.h ../userprog/bitmap.h ../threads/sysDataStructures.h \
+ ../machine/timer.h ../threads/sysDataStructures.h \
  /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -2420,9 +2414,9 @@ bitmap.o: ../userprog/bitmap.cc /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h /usr/include/string.h \
  /usr/include/strings.h
 exception.o: ../userprog/exception.cc /usr/include/stdc-predef.h \
- ../threads/copyright.h ../threads/system.h ../threads/copyright.h \
- ../machine/interrupt.h ../threads/list.h ../threads/utility.h \
- ../machine/sysdep.h /usr/include/c++/11/stdlib.h \
+ ../threads/copyright.h ../userprog/syscall.h ../threads/system.h \
+ ../threads/copyright.h ../machine/interrupt.h ../threads/list.h \
+ ../threads/utility.h ../machine/sysdep.h /usr/include/c++/11/stdlib.h \
  /usr/include/c++/11/cstdlib \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -2559,15 +2553,14 @@ exception.o: ../userprog/exception.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../threads/utility.h ../userprog/table.h \
  ../userprog/bitmap.h ../filesys/openfile.h ../machine/translate.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -2583,7 +2576,7 @@ exception.o: ../userprog/exception.cc /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/types/error_t.h \
  /usr/include/c++/11/bits/charconv.h \
  /usr/include/c++/11/bits/basic_string.tcc ../threads/synch.h \
- ../userprog/table.h ../userprog/syscall.h
+ ../userprog/table.h
 progtest.o: ../userprog/progtest.cc /usr/include/stdc-predef.h \
  ../userprog/addrspace.h /usr/include/c++/11/memory \
  /usr/include/c++/11/bits/stl_algobase.h \
@@ -2725,15 +2718,14 @@ progtest.o: ../userprog/progtest.cc /usr/include/stdc-predef.h \
  ../threads/thread.h ../userprog/addrspace.h ../machine/machine.h \
  ../machine/translate.h ../machine/disk.h ../threads/system.h \
  ../machine/interrupt.h ../threads/list.h ../threads/scheduler.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -2890,14 +2882,14 @@ console.o: ../machine/console.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../userprog/table.h ../userprog/bitmap.h \
  ../filesys/openfile.h ../machine/translate.h ../machine/machine.h \
  ../machine/translate.h ../machine/disk.h ../machine/stats.h \
- ../machine/timer.h ../userprog/bitmap.h ../threads/sysDataStructures.h \
+ ../machine/timer.h ../threads/sysDataStructures.h \
  /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -3054,15 +3046,14 @@ machine.o: ../machine/machine.cc /usr/include/stdc-predef.h \
  /usr/include/c++/11/pstl/execution_defs.h ../filesys/filesys.h \
  ../filesys/openfile.h ../userprog/table.h ../userprog/bitmap.h \
  ../filesys/openfile.h ../machine/translate.h ../machine/machine.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -3219,15 +3210,14 @@ mipssim.o: ../machine/mipssim.cc /usr/include/stdc-predef.h \
  /usr/include/c++/11/pstl/execution_defs.h ../filesys/filesys.h \
  ../filesys/openfile.h ../userprog/table.h ../userprog/bitmap.h \
  ../filesys/openfile.h ../machine/translate.h ../machine/machine.h \
- ../machine/stats.h ../machine/timer.h ../userprog/bitmap.h \
- ../threads/sysDataStructures.h /usr/include/c++/11/map \
- /usr/include/c++/11/bits/stl_tree.h \
+ ../machine/stats.h ../machine/timer.h ../threads/sysDataStructures.h \
+ /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \
@@ -3385,14 +3375,14 @@ translate.o: ../machine/translate.cc /usr/include/stdc-predef.h \
  ../machine/interrupt.h ../threads/list.h ../threads/utility.h \
  ../threads/scheduler.h ../threads/list.h ../threads/thread.h \
  ../machine/machine.h ../machine/stats.h ../machine/timer.h \
- ../userprog/bitmap.h ../threads/sysDataStructures.h \
- /usr/include/c++/11/map /usr/include/c++/11/bits/stl_tree.h \
+ ../threads/sysDataStructures.h /usr/include/c++/11/map \
+ /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/node_handle.h \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/string \
- /usr/include/c++/11/bits/char_traits.h /usr/include/c++/11/cstdint \
- /usr/include/c++/11/bits/localefwd.h \
+ /usr/include/c++/11/bits/erase_if.h ../userprog/bitmap.h \
+ /usr/include/c++/11/string /usr/include/c++/11/bits/char_traits.h \
+ /usr/include/c++/11/cstdint /usr/include/c++/11/bits/localefwd.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h \
  /usr/include/c++/11/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/11/cctype \

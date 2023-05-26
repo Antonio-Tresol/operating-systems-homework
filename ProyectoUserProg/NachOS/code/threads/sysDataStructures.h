@@ -6,6 +6,7 @@
 #include "bitmap.h"
 #include "string"
 #include "synch.h"
+#include "table.h"
 #include "thread.h"
 
 struct ThreadData {
@@ -15,16 +16,17 @@ struct ThreadData {
   Thread* threadPtr{nullptr};
 
   ThreadData() {}
-  // for exec threads know their executable name,
+  // for exec threads know their executable name, exit status, and semaphore
   ThreadData(Thread* thread, std::string ExecName, int32_t exitStat,
              Semaphore* semToJoin)
       : ExecutableName(ExecName),
         exitStatus(exitStat),
         semToJoinIn(semToJoin),
         threadPtr(thread) {}
-  // forked threads do not know their executable name
+  // forked threads do not know their executable name, have exit status, and
+  // no semaphore
   ThreadData(Thread* thread) : threadPtr(thread) {}
-  // for main thread
+  // for main thread has executable name but no exit status, and no semaphore
   ThreadData(Thread* thread, std::string ExecName)
       : ExecutableName(ExecName), threadPtr(thread) {}
   ~ThreadData() { delete semToJoinIn; }
