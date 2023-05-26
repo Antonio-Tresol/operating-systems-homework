@@ -41,6 +41,8 @@
 #include "utility.h"
 
 #ifdef USER_PROGRAM
+#include <memory>
+
 #include "addrspace.h"
 #include "machine.h"
 // Thread kind (SYS, USR_FORK, USR_EXEC)
@@ -129,7 +131,7 @@ class Thread {
   void RestoreUserState();  // restore user-level register state
   void setKind(ThreadKind k) { kind = k; }
   ThreadKind getKind() { return kind; }
-  AddrSpace* space;  // User code this thread is running.
+  std::shared_ptr<AddrSpace> space;  // User code this thread is running.
 #endif
 };
 

@@ -22,14 +22,12 @@
 
 void StartProcess(const char *filename) {
   OpenFile *executable = fileSystem->Open(filename);
-  AddrSpace *space;
 
   if (executable == NULL) {
     printf("Unable to open file %s\n", filename);
     return;
   }
-  space = new AddrSpace(executable);
-  currentThread->space = space;
+  currentThread->space = std::make_shared<AddrSpace>(executable);
   currentThread->setKind(MAIN);
   int16_t threadId = threadTable->AddThread(currentThread, filename);
   ASSERT(threadId != -1);
@@ -37,8 +35,8 @@ void StartProcess(const char *filename) {
 
   delete executable;  // close file
 
-  space->InitRegisters();  // set the initial register values
-  space->RestoreState();   // load page table register
+  currentThread->space->InitRegisters();  // set the initial register values
+  currentThread->space->RestoreState();   // load page table register
 
   machine->Run();  // jump to the user progam
   ASSERT(false);   // machine->Run never returns;

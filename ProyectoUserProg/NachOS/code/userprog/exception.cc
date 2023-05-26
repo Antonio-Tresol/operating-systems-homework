@@ -80,10 +80,35 @@ void NachOS_Halt() {  // System call 0
   interrupt->Halt();
 }
 
-/*
+/**
  *  System call interface: void Exit( int )
  */
 void NachOS_Exit() {  // System call 1
+  // Read the exit status from the 4th register.
+  int exitStatus = machine->ReadRegister(4);
+  int16_t threadId = currentThread->getThreadId();
+  ThreadKind Kind = currentThread->getKind();
+  // Print exit status
+  DEBUG('x', "Thread %s exited with status %d\n", currentThread->getName(),
+        exitStatus);
+  // Finish the current thread's execution.
+  if (Kind == USR_EXEC) {
+    DEBUG('x', "User thread %s exiting\n", currentThread->getName());
+    Semaphore* semaphore = threadTable->getSemToJoinIn(threadId);
+    semaphore->V();
+    threadTable->setExitStatus(threadId, exitStatus);
+    DEBUG('x', "Semaphore signaled and exit status saved\n");
+    // parent thread is in charge of removing the child thread from the table
+  } else if (Kind == USR_FORK) {  // for forked and main threads
+    DEBUG('x', "Forked %s exiting\n", currentThread->getName());
+    threadTable->RemoveThread(threadId);
+  } else {
+    DEBUG('x', "Main thread exiting\n");
+    threadTable->RemoveThread(threadId);
+  }
+  currentThread->Yield();
+  currentThread->Finish();
+  NachOS_IncreasePC();
 }
 
 /*
