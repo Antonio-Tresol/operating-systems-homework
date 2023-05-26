@@ -45,7 +45,7 @@
 #include "machine.h"
 #include "table.h"
 // Thread kind (SYS, USR_FORK, USR_EXEC)
-enum ThreadKind { SYS, USR_FORK, USR_EXEC };
+enum ThreadKind { MAIN, USR_FORK, USR_EXEC };
 #endif
 
 // CPU register state to be saved on context switch.
@@ -100,8 +100,8 @@ class Thread {
   void setStatus(ThreadStatus st) { status = st; }
   const char* getName() { return (name); }
   void Print() { printf("%s, ", name); }
-  u_int32_t getThreadId() { return threadId; }
-  void setThreadId(u_int32_t id) { threadId = id; }
+  u_int16_t getThreadId() { return threadId; }
+  void setThreadId(u_int16_t id) { threadId = id; }
 
  private:
   // some of the private data for this class is listed above
@@ -111,7 +111,7 @@ class Thread {
                              // (If NULL, don't deallocate stack)
   ThreadStatus status;       // ready, running or blocked
   const char* name;
-  u_int32_t threadId;  // thread id
+  u_int16_t threadId;  // thread id
 
   void StackAllocate(VoidFunctionPtr func, void* arg);
   // Allocate a stack for thread.

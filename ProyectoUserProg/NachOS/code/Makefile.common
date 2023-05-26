@@ -50,7 +50,8 @@ THREAD_H =../threads/copyright.h\
 	../machine/sysdep.h\
 	../machine/stats.h\
 	../machine/timer.h\
-	../threads/preemptive.h
+	../threads/preemptive.h\
+	../threads/sysDataStructures.h
 
 THREAD_C =../threads/main.cc\
 	../threads/scheduler.cc\
@@ -64,13 +65,14 @@ THREAD_C =../threads/main.cc\
 	../machine/sysdep.cc\
 	../machine/stats.cc\
 	../machine/timer.cc\
-	../threads/preemptive.cc
+	../threads/preemptive.cc\
+	../threads/sysDataStructures.cc
 
 THREAD_S = ../threads/switch.s
 
 THREAD_O =main.o scheduler.o synch.o system.o thread.o \
 	utility.o threadtest.o interrupt.o stats.o sysdep.o timer.o \
-	preemptive.o diningph.o
+	preemptive.o diningph.o sysDataStructures.o
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\
