@@ -24,6 +24,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <cerrno>
+
 #include "copyright.h"
 #include "syscall.h"
 #include "system.h"
@@ -40,7 +42,7 @@ std::string readFileName(int32_t fileNameAddress) {
       fileName.push_back(static_cast<char>(nameCharBuffer));
     }
     // Loop continues until it encounters end of file character
-  } while (nameCharBuffer != 0);
+  } while (nameCharBuffer > 0);
   return fileName;
 }
 
@@ -151,22 +153,26 @@ void NachOS_Create() {  // System call 4
   int64_t fileNameAddress = machine->ReadRegister(4);
   // Read the file name from user memory.
   std::string fileName = readFileName(fileNameAddress);
+  int32_t fileDescriptor = -1;
   // Check if the file name length is valid.
   if (fileName.size() <= FILENAME_MAX) {
     // Create the file with the specified name and read-write permissions for
     // the user.
     // use system semaphore to protect file creation (semaphore 2)
     sysSemaphoreTable->GetSemaphore(2)->P();
-    int status = creat(fileName.c_str(), S_IRUSR | S_IWUSR);
+    fileDescriptor = creat(fileName.c_str(), S_IRUSR | S_IWUSR);
     // Check if the file was successfully created.
-    if (status == -1) {
-      DEBUG('k', "Unable to create file: %s\n", fileName.c_str());
+    if (fileDescriptor == -1) {
+      DEBUG('o', "Unable to create file: %s\n", fileName.c_str());
+      DEBUG('o', "Error: %s\n", strerror(errno));
+    } else {
+      currentThread->space->openFiles->Open(fileDescriptor);
     }
     // use system semaphore to protect file creation (semaphore 2)
-    sysSemaphoreTable->GetSemaphore(2)->P();
+    sysSemaphoreTable->GetSemaphore(2)->V();
   } else {
     // If the file name is too long, report an error.
-    DEBUG('k', "File name too long: %s\n", fileName.c_str());
+    DEBUG('o', "File name too long: %s\n", fileName.c_str());
   }
   // Increment the program counter.
   NachOS_IncreasePC();
@@ -187,31 +193,40 @@ void NachOS_Open() {  // System call 5
   int fd = open(fileName.c_str(), O_RDWR | O_APPEND);
   // If the file couldn't be opened, write -1 to register 2 and increment the PC
   if (fd == -1) {
+    DEBUG('o', "Unable to open file: %s\n", fileName.c_str());
+    DEBUG('o', "Error: %s\n", strerror(errno));
     machine->WriteRegister(2, -1);
     NachOS_IncreasePC();
     return;
   }
+  DEBUG('o', "Opened file: %s\n", fileName.c_str());
   // Cast the file descriptor to an OpenFileId
-  OpenFileId openFileId = static_cast<OpenFileId>(fd);
-  // Update the open file table for the current thread
-  openFileId = currentThread->space->openFiles->Open(openFileId);
+  OpenFileId openFileId = currentThread->space->openFiles->Open(fd);
   if (openFileId == -1) {
     // If the file couldn't be opened, write -1 to register 2 and increment the
     // PC
+    DEBUG('o',
+          "Unable to open file, not enough space in nachos file table: %s\n",
+          fileName.c_str());
     machine->WriteRegister(2, -1);
     NachOS_IncreasePC();
     return;
   }
-  sysOpenFilesTable->addEntry(openFileId, fd);
   // Write the file descriptor to register 2
   machine->WriteRegister(2, openFileId);
   // Increment the program counter
   NachOS_IncreasePC();
 }
-/*
- *  System call interface: OpenFileId Write( char *, int, OpenFileId )
+/**
+ * @brief The Write system call for NachOS.
+ *
+ * This system call writes from a buffer in memory to an open file, or the
+ * console. The number of characters written is returned in register 2. If the
+ * file descriptor is invalid, or an error occurs, -1 is returned.
+ * System call interface: void Write(char *buffer, int size, OpenFileId id)
  */
 void NachOS_Write() {  // System call 7
+  DEBUG('o', "Write syscall\n");
   // Read parameters from registers
   // Read the address of the buffer from register 4
   int32_t inputBuffer = machine->ReadRegister(4);
@@ -221,27 +236,33 @@ void NachOS_Write() {  // System call 7
   OpenFileId fileDescriptor = machine->ReadRegister(6);
   // write to the same file.
   // Debug message about the NachOS file handle we're writing to
-  DEBUG('w', "Writing to file %d (NachOS handle)...\n", fileDescriptor);
+  DEBUG('o', "Writing to file %d (NachOS handle)...\n", fileDescriptor);
   // Read the buffer from memory
   std::string buffer = readFromBuffer(inputBuffer, bufferSize);
+  DEBUG('o', "Buffer: %s\n", buffer.c_str());
   // Check the file descriptor to determine where to write data
+  int32_t bytesWritten = -1;
   switch (fileDescriptor) {
     case ConsoleInput:
       // Writing to the console input is not allowed, report error (-1)
-      DEBUG('w', "Writing to console input is not allowed!\n");
+      DEBUG('o', "Writing to console input is not allowed!\n");
       break;
     case ConsoleOutput:
       // use system semaphore to restrict access to console output (semaphore 0)
       sysSemaphoreTable->GetSemaphore(0)->P();
-      DEBUG('w', "Writing to console output...\n");
+      DEBUG('o', "Writing to console output...\n");
       // Write the buffer to the console output
-      write(1, buffer.c_str(), buffer.size());
-      write(1, "\n", 1);
+      buffer.append("\n");
+      bytesWritten = write(1, buffer.c_str(), buffer.size());
+      if (bytesWritten == -1) {
+        DEBUG('o', "Error writing to console output!\n");
+        DEBUG('o', "Error: %s\n", strerror(errno));
+      }
       sysSemaphoreTable->GetSemaphore(0)->V();
       break;
     default:
       // We're writing to a file, print debug message
-      DEBUG('w', "Writing to file %d (NachOS handle)...\n", fileDescriptor);
+      DEBUG('o', "Writing to file %d (NachOS handle)...\n", fileDescriptor);
       // Check if the file is open
       bool isOpen = currentThread->space->openFiles->isOpened(fileDescriptor);
       if (isOpen) {  // check if the file is open locally
@@ -252,31 +273,22 @@ void NachOS_Write() {  // System call 7
         int32_t unixFileHandle =
             currentThread->space->openFiles->getUnixHandle(fileDescriptor);
         // Write the buffer to the UNIX file
-        write(unixFileHandle, buffer.c_str(), buffer.size());
+        bytesWritten = write(unixFileHandle, buffer.c_str(), buffer.size());
         // Debug message for successful file write
-        DEBUG('w',
-              "Successfully wrote %d bytes to file %d (UNIX) | %d (NachOS).\n",
-              buffer.size(), unixFileHandle, fileDescriptor);
-        sysSemaphoreTable->GetSemaphore(1)->V();
-      } else {
-        isOpen = sysOpenFilesTable->isOpened(fileDescriptor);
-        if (isOpen) {  // check if the file is open globally
-          sysSemaphoreTable->GetSemaphore(1)->P();
-          // Get the UNIX file handle
-          int32_t unixFileHandle =
-              sysOpenFilesTable->getUnixHandle(fileDescriptor);
-          // Write the buffer to the UNIX file
-          write(unixFileHandle, buffer.c_str(), buffer.size());
-          // Debug message for successful file write
+        if (bytesWritten == -1) {
+          DEBUG('o', "Error writing to file %d (UNIX) | %d (NachOS).\n",
+                unixFileHandle, fileDescriptor);
+          DEBUG('o', "Error: %s\n", strerror(errno));
+        } else {
           DEBUG(
-              'w',
+              'o',
               "Successfully wrote %d bytes to file %d (UNIX) | %d (NachOS).\n",
               buffer.size(), unixFileHandle, fileDescriptor);
-          sysSemaphoreTable->GetSemaphore(1)->V();
         }
-        // If the file is not open, report error (-1)
-        DEBUG('w', "File %d (NachOS handle) is not open!\n", fileDescriptor);
+        sysSemaphoreTable->GetSemaphore(1)->V();
       }
+      // If the file is not open, report error (-1)
+      DEBUG('o', "File %d (NachOS handle) is not open!\n", fileDescriptor);
       break;
   }
   // Increment the program counter
@@ -343,19 +355,6 @@ void NachOS_Read() {  // System call 6
         }
         // Write the number of bytes read into register 2
         machine->WriteRegister(2, bytesRead);
-      } else if (sysOpenFilesTable->isOpened(descriptorFile)) {
-        DEBUG('w', "Reading from system file table %d (NachOS handle)...\n",
-              descriptorFile);
-        int32_t bytesRead = read(
-            sysOpenFilesTable->getUnixHandle(descriptorFile), readBuffer, size);
-        // For all bytes read
-        for (int32_t charPos = 0; charPos < bytesRead; charPos++) {
-          // Write each character from the buffer into memory at the
-          // corresponding address
-          machine->WriteMem(bufferAddr + charPos, 1, readBuffer[charPos]);
-        }
-        // Write the number of bytes read into register 2
-        machine->WriteRegister(2, bytesRead);
       } else {
         // If the file is not open, report error (-1)
         DEBUG('w', "File %d (NachOS handle) is not open!\n", descriptorFile);
@@ -394,7 +393,6 @@ void NachOS_Close() {  // System call 8
       // If successful, remove the file's reference from the open files table
       // and set return value to 0 to signify success.
       currentThread->space->openFiles->Close(fileId);
-      sysOpenFilesTable->Close(fileId);
     }
   } else {
     // If the file is not open, log the failure and set return value to -1 to

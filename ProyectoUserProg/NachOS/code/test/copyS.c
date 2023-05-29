@@ -3,12 +3,12 @@
 int main() {
   OpenFileId input;
   OpenFileId output;
-  char buffer[100];
+  char buffer[1024];
   int n = 0;
 
-  Create("nachos2.txt");
-  input = Open("nachos1.txt");
-  output = Open("nachos2.txt");
+  Create("nachos.2");
+  input = Open("nachos.1");
+  output = Open("nachos.2");
   while ((n = Read(buffer, 1024, input)) > 0) {
     Write(buffer, n, output);
   }

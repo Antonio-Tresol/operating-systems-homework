@@ -6,7 +6,6 @@
 #include "bitmap.h"
 #include "string"
 #include "synch.h"
-#include "table.h"
 #include "thread.h"
 
 struct ThreadData {

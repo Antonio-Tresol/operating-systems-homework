@@ -36,7 +36,6 @@ extern Machine *machine;  // user program memory and registers
 extern BitMap *memBitMap;
 extern ThreadTable *threadTable;
 extern SysSemaphoreTable *sysSemaphoreTable;
-extern OpenFilesTable *sysOpenFilesTable;
 #endif
 
 #ifdef FILESYS_NEEDED  // FILESYS or FILESYS_STUB

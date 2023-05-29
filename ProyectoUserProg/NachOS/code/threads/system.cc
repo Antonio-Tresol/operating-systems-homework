@@ -174,7 +174,6 @@ void Initialize(int argc, char **argv) {
   memBitMap = new BitMap(NumPhysPages);
   threadTable = new ThreadTable();
   sysSemaphoreTable = new SysSemaphoreTable();
-  sysOpenFilesTable = new OpenFilesTable();
 #endif
 
 #ifdef FILESYS
@@ -209,7 +208,6 @@ void Cleanup() {
   delete memBitMap;
   delete threadTable;
   delete sysSemaphoreTable;
-  delete sysOpenFilesTable;
 #endif
 
 #ifdef FILESYS_NEEDED

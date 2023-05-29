@@ -26,6 +26,6 @@ class OpenFilesTable {
   // cada espacio del vector es un thread diferente, cada thread tiene entonces,
   // su propio bitmap vector<BitMap*> *vecMapsOpenFiles; // Por ahora, se
   // comenta esto para usar otra solución
-  static const int16_t MAX_OPEN_FILES = 128;
+  static const int16_t MAX_OPEN_FILES = 2000;
 };
 #endif  // OPENFILESTABLE_H
