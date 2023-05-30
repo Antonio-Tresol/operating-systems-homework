@@ -155,13 +155,10 @@ AddrSpace::AddrSpace(AddrSpace *parentAdrSpace) {
   this->openFiles = parentAdrSpace->openFiles;
   // The location of the page in the physical memory.
   u_int32_t pageLocation = 0;
-
   // Size of shared memory is all sectors except the stack.
   u_int32_t sharedMemory = this->numPages - divRoundUp(UserStackSize, PageSize);
-
   // Set up the translation from virtual to physical addresses.
   pageTable = new TranslationEntry[this->numPages];
-
   // Set shared memory for the code and data segments as same for the parent
   // process.
   for (u_int32_t page = 0; page < sharedMemory; page++) {
@@ -185,9 +182,7 @@ AddrSpace::AddrSpace(AddrSpace *parentAdrSpace) {
            pageToErase++) {
         memBitMap->Clear(this->pageTable[pageToErase].physicalPage);
       }
-      // Report error and terminate the thread.
-      fprintf(stderr,
-              "Could not allocate necessary memory, terminating thread\n");
+      DEBUG('x', "Not enough memory for stack, exiting\n");
       currentThread->Finish();
     }
     pageLocation = newLocation;

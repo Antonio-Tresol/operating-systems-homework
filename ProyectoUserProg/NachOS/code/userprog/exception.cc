@@ -252,7 +252,6 @@ void NachOS_Write() {  // System call 7
       sysSemaphoreTable->GetSemaphore(0)->P();
       DEBUG('o', "Writing to console output...\n");
       // Write the buffer to the console output
-      buffer.append("\n");
       bytesWritten = write(1, buffer.c_str(), buffer.size());
       if (bytesWritten == -1) {
         DEBUG('o', "Error writing to console output!\n");
@@ -269,7 +268,7 @@ void NachOS_Write() {  // System call 7
                      // use system semaphore to restrict access to file
                      // (semaphore 1)
         sysSemaphoreTable->GetSemaphore(1)->P();
-        // Get the UNIX file handle
+        //  Get the UNIX file handle
         int32_t unixFileHandle =
             currentThread->space->openFiles->getUnixHandle(fileDescriptor);
         // Write the buffer to the UNIX file
@@ -402,16 +401,86 @@ void NachOS_Close() {  // System call 8
   // Increment the program counter.
   NachOS_IncreasePC();
 }
-/*
- *  System call interface: void Fork( void (*func)() )
+/**
+ * @brief The auxiliar function for forking a new user thread in NachOS.
+ *
+ * This function initializes the new user thread's registers, restores the
+ * thread's state from its address space, and sets the thread's program
+ * counter to the start of the user function passed in as a parameter. The
+ * machine then starts executing the new user thread.
+ *
+ * @param startOfUserFunction A pointer to the start of the user function that
+ * the new thread will execute.
  */
-void NachOS_Fork() {  // System call 9
+void ForkThread(void* startOfUserFunction) {
+  DEBUG('x', "preparing new thread to fork...\n");
+  // Initialize the current thread's registers. This involves resetting
+  // the context to a known state, ready for a new user thread to start
+  // executing.
+  currentThread->space->InitRegisters();
+  // Restores the current thread's state from its address space.
+  // This involves copying the current state of the thread (including the values
+  // of its registers and the contents of its stack) into the current address
+  // space.
+  currentThread->space->RestoreState();
+  // Set up the return address register with a dummy value (4)
+  machine->WriteRegister(RetAddrReg, 4);
+  // Set the program counter to the start of the function to execute. This is
+  // passed in as the argument 'p'. 'PCReg' is the program counter register.
+  machine->WriteRegister(PCReg,
+                         reinterpret_cast<intptr_t>(startOfUserFunction));
+
+  // Set the next program counter (NextPCReg). This will be 'PCReg + 4', because
+  // we increment PCReg after every instruction.
+  machine->WriteRegister(NextPCReg,
+                         reinterpret_cast<intptr_t>(startOfUserFunction) + 4);
+  // Start executing the new user thread.
+  DEBUG('x', "Starting user fork thread\n");
+  machine->Run();
+  // We should never get past this point because a new thread has taken over
+  // execution. If we do reach this point, there is an error.
+  ASSERT(false);
+}
+/** @brief Handles the Fork system call in NachOS.
+ *
+ * The Fork system call creates a new kernel thread, shares open file table and
+ * address space (excluding stack) with the parent thread. It uses a constructor
+ * in AddrSpace class to copy the shared segments and creates a new stack for
+ * the child thread. Then, it uses kernel Fork to execute the child code,
+ * passing the user routine address as a parameter.
+ * System call interface: void Fork(void (*func)())
+ */
+void NachOS_Fork() {
+  DEBUG('x', "Entering Fork System call\n");
+  // Create a new kernel thread for user code.
+  Thread* childThread = new Thread("child to execute Fork code");
+  // set the kind of the thread to USR_FORK
+  childThread->setKind(USR_FORK);
+  // add thread to the thread table and get an id
+  childThread->setThreadId(threadTable->AddThread(childThread));
+  // set the parent thread id
+  childThread->setParentId(currentThread->getThreadId());
+  // Share open file table and address space (excluding stack) with the parent
+  // thread. Use AddrSpace constructor to copy shared segments and create a new
+  // stack.
+  childThread->space = std::make_shared<AddrSpace>(currentThread->space.get());
+  // Kernel Fork to execute child code, pass the user routine address as a
+  // parameter.
+  size_t userFunctionAddress = static_cast<size_t>(machine->ReadRegister(4));
+  void* userFunction = reinterpret_cast<void*>(userFunctionAddress);
+  DEBUG('x', "Forking thread\n");
+  childThread->Fork(ForkThread, userFunction);
+  // Adjust PC registers.
+  NachOS_IncreasePC();
+  DEBUG('x', "Exiting Fork System call\n");
 }
 
-/*
- *  System call interface: void Yield()
+/**
+ *  @brief System call interface: void Yield()
  */
 void NachOS_Yield() {  // System call 10
+  currentThread->Yield();
+  NachOS_IncreasePC();
 }
 
 /*
