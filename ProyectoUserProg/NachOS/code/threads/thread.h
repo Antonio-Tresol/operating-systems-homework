@@ -136,7 +136,7 @@ class Thread {
   void RestoreUserState();  // restore user-level register state
   void setKind(ThreadKind k) { kind = k; }
   ThreadKind getKind() { return kind; }
-  AddrSpace* space;  // User code this thread is running.
+  std::unique_ptr<AddrSpace> space;  // User code this thread is running.
 #endif
 };
 

@@ -33,7 +33,7 @@ void StartProcess(const char *filename) {
     delete executable;
     return;
   }
-  currentThread->space = space;
+  currentThread->space = std::unique_ptr<AddrSpace>(space);
   currentThread->openFiles = std::make_shared<OpenFilesTable>();
   currentThread->setKind(MAIN);
   int16_t threadId = threadTable->AddThread(currentThread, filename);

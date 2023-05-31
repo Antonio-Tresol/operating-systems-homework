@@ -33,12 +33,11 @@ FileSystem *fileSystem;
 SynchDisk *synchDisk;
 #endif
 
-#ifdef USER_PROGRAM  // requires either FILESYS or FILESYS_STUB
-Machine *machine;    // user program memory and registers
-BitMap *memBitMap;
-ThreadTable *threadTable;
-SysSemaphoreTable *sysSemaphoreTable;
-OpenFilesTable *sysOpenFilesTable;
+#ifdef USER_PROGRAM                // requires either FILESYS or FILESYS_STUB
+std::unique_ptr<Machine> machine;  // user program memory and registers
+std::unique_ptr<ThreadTable> threadTable;
+std::unique_ptr<SysSemaphoreTable> sysSemaphoreTable;
+std::unique_ptr<BitMap> memBitMap;
 #endif
 
 #ifdef NETWORK
@@ -170,10 +169,11 @@ void Initialize(int argc, char **argv) {
   }
 
 #ifdef USER_PROGRAM
-  machine = new Machine(debugUserProg);  // this must come first
-  memBitMap = new BitMap(NumPhysPages);
-  threadTable = new ThreadTable();
-  sysSemaphoreTable = new SysSemaphoreTable();
+  machine = std::make_unique<Machine>(
+      debugUserProg);  // this must come first // this must come first
+  memBitMap = std::make_unique<BitMap>(NumPhysPages);
+  threadTable = std::make_unique<ThreadTable>();
+  sysSemaphoreTable = std::make_unique<SysSemaphoreTable>();
 #endif
 
 #ifdef FILESYS
@@ -204,10 +204,10 @@ void Cleanup() {
 #endif
 
 #ifdef USER_PROGRAM
-  delete machine;
-  delete memBitMap;
-  delete threadTable;
-  delete sysSemaphoreTable;
+  // delete machine;
+  // delete memBitMap;
+  // delete threadTable;
+  // delete sysSemaphoreTable;
 #endif
 
 #ifdef FILESYS_NEEDED

@@ -30,12 +30,14 @@ extern Statistics *stats;            // performance metrics
 extern Timer *timer;                 // the hardware alarm clock
 
 #ifdef USER_PROGRAM
+#include <memory>
+
 #include "machine.h"
 #include "sysDataStructures.h"
-extern Machine *machine;  // user program memory and registers
-extern BitMap *memBitMap;
-extern ThreadTable *threadTable;
-extern SysSemaphoreTable *sysSemaphoreTable;
+extern std::unique_ptr<Machine> machine;  // user program memory and registers
+extern std::unique_ptr<ThreadTable> threadTable;
+extern std::unique_ptr<SysSemaphoreTable> sysSemaphoreTable;
+extern std::unique_ptr<BitMap> memBitMap;
 #endif
 
 #ifdef FILESYS_NEEDED  // FILESYS or FILESYS_STUB
