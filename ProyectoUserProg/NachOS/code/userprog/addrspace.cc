@@ -65,7 +65,6 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   // This is a header for the NOFF (NACHOS Object File Format) binary format.
   NoffHeader noffH;
   u_int32_t i, size;
-  openFiles = std::make_shared<OpenFilesTable>();
   // Read the NOFF header from the start of the executable file.
   executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
   // Check if the file is in NOFF format and if not, swap the header.
@@ -93,9 +92,7 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   size = codeSize + dataSize + uninitDataSize + UserStackSize;
   // Calculate the number of pages required by rounding up the size to the
   // nearest page boundary.
-  u_int32_t sizeOfCodeAndData = codeSize + dataSize;
-  u_int32_t pagesForCodeAndData = divRoundUp(sizeOfCodeAndData, PageSize);
-  sizeOfCodeAndData = pagesForCodeAndData * PageSize;
+  u_int32_t sizeOfCodeAndData = codeSize + dataSize + uninitDataSize;
   numPages = divRoundUp(size, PageSize);
   // Recalculate the size in case it was rounded up to the nearest page
   // boundary.
@@ -108,6 +105,7 @@ AddrSpace::AddrSpace(OpenFile *executable) {
 
   // Assert that the number of pages required does not exceed the number of
   // physical pages available.
+  DEBUG('s', "number of pages available %d\n", memBitMap->NumClear());
   ASSERT(memBitMap->NumClear() >= static_cast<int>(numPages));
   ASSERT(numPages <= NumPhysPages);
   // Print debug information about the address space being initialized.
@@ -119,7 +117,7 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   for (i = 0; i < numPages; i++) {
     int64_t pageLocation = memBitMap->Find();
     if (pageLocation == -1) {
-      // TODO: handle the lack of memory somehow
+      DEBUG('a', "Out of memory, no free pages in the bitmap\n");
       return;
     }
     pageTable[i].virtualPage = i;
@@ -130,29 +128,53 @@ AddrSpace::AddrSpace(OpenFile *executable) {
     // If the code segment was entirely on a separate page,
     // we could set its pages to be read-only.
     pageTable[i].readOnly = false;
+    bzero(machine->mainMemory + (pageTable[i].physicalPage * PageSize),
+          PageSize);
   }
   // Zero out the entire address space, to zero the uninitialized data segment
   // and the stack segment.
   // TODO: we have to change this to zero out only the pages that are allocated
-  bzero(machine->mainMemory, size);
+  // bzero(machine->mainMemory, size);
   // Copy the code and data segments into memory.
+  DEBUG('s', "\ncurrentThread->space->numPages: %d\n", numPages);
   for (i = 0; i < sizeOfCodeAndData; i++) {
+    if (i >= numPages) {
+      DEBUG('s', "Page index out of range\n");
+      ASSERT(false);
+    }
     u_int32_t pageLocation = this->pageTable[i].physicalPage;
+    DEBUG('s', "Copying page at page %d\n", pageLocation);
+
+    // if (PageSize * pageLocation >= size) {
+    //   DEBUG('s', "Memory location out of range\n");
+    //   ASSERT(false);
+    // }
+
     u_int32_t startPositionOnFile = codeStart + (i * PageSize);
-    DEBUG('a',
-          "Copying page at page %d,"
-          " and file location 0x%x\n",
+    DEBUG('s', "Copying page at page %d, and file location 0x%x\n",
           pageLocation, startPositionOnFile);
-    executable->ReadAt(&(machine->mainMemory[PageSize * pageLocation]),
-                       PageSize, startPositionOnFile);
+
+    u_int32_t pageCopySize = PageSize;
+    if (i == sizeOfCodeAndData - 1) {
+      pageCopySize =
+          (noffH.code.size + noffH.initData.size + noffH.uninitData.size) %
+          sizeOfCodeAndData;
+    }
+    int readBytes =
+        executable->ReadAt(&(machine->mainMemory[PageSize * pageLocation]),
+                           pageCopySize, startPositionOnFile);
+
+    if (readBytes <= 0) {
+      DEBUG('a', "Reading from executable file failed\n");
+      break;
+    }
   }
+  DEBUG('s', "Done copying code and data segments\n");
 }
 
 AddrSpace::AddrSpace(AddrSpace *parentAdrSpace) {
   // Copy number of pages and the open files table from parent address space.
   this->numPages = parentAdrSpace->numPages;
-  // share the open files table with the parent process
-  this->openFiles = parentAdrSpace->openFiles;
   // The location of the page in the physical memory.
   u_int32_t pageLocation = 0;
   // Size of shared memory is all sectors except the stack.

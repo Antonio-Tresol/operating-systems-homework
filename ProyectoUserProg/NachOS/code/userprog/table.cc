@@ -1,6 +1,16 @@
 // Include the header file for Filestable
 #include "table.h"
 
+void OpenFilesTable::Print() {
+  // for all possible files
+  for (int file = 0; file < MAX_OPEN_FILES; file++) {
+    // if current file position is open
+    if (this->isOpened(file)) {
+      // print the NachOs handle and Unix Handle
+      printf("%i, %i\n", file, this->openFiles[file]);
+    }
+  }
+}
 // Constructor for OpenFilesTable class
 OpenFilesTable::OpenFilesTable() {
   // Initializing array to store open file handles
@@ -29,8 +39,8 @@ int OpenFilesTable::Open(int UnixHandle) {
   bool fileIsOpen = 0;
   bool reopen = false;
   // Iterating over the BitMap to check for open files
-  for (int fileIndex = 0; fileIndex < filesMap->getNumBits(); fileIndex++) {
-    fileIsOpen = (filesMap->Test(fileIndex));
+  for (int fileIndex = 0; fileIndex < MAX_OPEN_FILES; fileIndex++) {
+    fileIsOpen = filesMap->Test(fileIndex);
     bool handlesAreEqual = (openFiles[fileIndex] == UnixHandle);
     // If the file is open and handles match, mark file for reopening
     if (fileIsOpen && handlesAreEqual) {
@@ -44,7 +54,7 @@ int OpenFilesTable::Open(int UnixHandle) {
   }
   // If not reopening, find the next available handle
   handle = filesMap->Find();
-  // If a handle was found and the corresponding entry in the openFiles array is
+  // If a handle was found and the corresponding entry in the openFiles array
   // unused, assign the Unix handle
   if (handle != -1) {
     if (openFiles[handle] == -1) {

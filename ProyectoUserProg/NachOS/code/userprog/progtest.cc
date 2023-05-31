@@ -27,17 +27,26 @@ void StartProcess(const char *filename) {
     printf("Unable to open file %s\n", filename);
     return;
   }
-  currentThread->space = std::make_shared<AddrSpace>(executable);
+  AddrSpace *space = new AddrSpace(executable);
+  if (space == NULL) {
+    DEBUG('x', "Unable to allocate address space\n");
+    delete executable;
+    return;
+  }
+  currentThread->space = space;
+  currentThread->openFiles = std::make_shared<OpenFilesTable>();
   currentThread->setKind(MAIN);
   int16_t threadId = threadTable->AddThread(currentThread, filename);
   ASSERT(threadId != -1);
   currentThread->setThreadId(threadId);
-
+  DEBUG('x', "Thread %s with id %d is created\n", currentThread->getName(),
+        currentThread->getThreadId());
   delete executable;  // close file
 
   currentThread->space->InitRegisters();  // set the initial register values
   currentThread->space->RestoreState();   // load page table register
-
+  DEBUG('x', "Thread main with id %d is running\n",
+        currentThread->getThreadId());
   machine->Run();  // jump to the user progam
   ASSERT(false);   // machine->Run never returns;
                    // the address space exits

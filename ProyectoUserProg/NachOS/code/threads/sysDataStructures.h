@@ -41,6 +41,7 @@ class ThreadTable {
   ThreadData* GetThreadData(int16_t threadId);
   void SetThreadData(int16_t threadId, ThreadData* data);
   bool IsThread(int16_t threadId);
+  bool IsJoinable(int16_t threadId);
   void setExitStatus(int16_t threadId, int32_t exitStatus);
   Semaphore* getSemToJoinIn(int16_t threadId);
 

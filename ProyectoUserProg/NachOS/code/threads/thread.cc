@@ -61,6 +61,10 @@ Thread::~Thread() {
   ASSERT(this != currentThread);
   if (stack != NULL)
     DeallocBoundedArray((char *)stack, StackSize * sizeof(HostMemoryAddress));
+  DEBUG('t', "Deleting thread \"%s\" done\n", name);
+  if (space != nullptr) {
+    delete space;
+  }
 }
 
 //----------------------------------------------------------------------

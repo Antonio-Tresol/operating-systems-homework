@@ -78,11 +78,24 @@ void ThreadTable::SetThreadData(int16_t threadId, ThreadData* data) {
 
 bool ThreadTable::IsThread(int16_t threadId) {
   lock->Acquire();
-  bool isThread = table.find(threadId) != table.end();
+  bool isThread = threadMap->Test(threadId);
   lock->Release();
   return isThread;
 }
-
+bool ThreadTable::IsJoinable(
+    int16_t threadId) {  // get access to the thread table
+  lock->Acquire();
+  // check if the thread is in the table
+  if (threadMap->Test(threadId)) {
+    // check if the thread is joinable, only usr_exec threads are joinable
+    if (table[threadId]->threadPtr->getKind() == USR_EXEC) {
+      lock->Release();
+      return true;
+    }
+  }
+  lock->Release();
+  return false;
+}
 void ThreadTable::setExitStatus(int16_t threadId, int32_t exitStatus) {
   lock->Acquire();
   if (table.find(threadId) != table.end()) {

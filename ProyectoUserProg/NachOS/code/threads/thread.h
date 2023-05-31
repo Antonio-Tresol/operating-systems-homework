@@ -45,6 +45,7 @@
 
 #include "addrspace.h"
 #include "machine.h"
+#include "table.h"
 // Thread kind (SYS, USR_FORK, USR_EXEC)
 enum ThreadKind { MAIN, USR_FORK, USR_EXEC };
 #endif
@@ -130,11 +131,12 @@ class Thread {
   ThreadKind kind;                  // kind of thread
 
  public:
-  void SaveUserState();     // save user-level register state
+  std::shared_ptr<OpenFilesTable> openFiles;  // open files table
+  void SaveUserState();                       // save user-level register state
   void RestoreUserState();  // restore user-level register state
   void setKind(ThreadKind k) { kind = k; }
   ThreadKind getKind() { return kind; }
-  std::shared_ptr<AddrSpace> space;  // User code this thread is running.
+  AddrSpace* space;  // User code this thread is running.
 #endif
 };
 

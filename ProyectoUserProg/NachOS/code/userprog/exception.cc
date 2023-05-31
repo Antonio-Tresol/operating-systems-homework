@@ -93,6 +93,7 @@ void NachOS_Exit() {  // System call 1
   int exitStatus = machine->ReadRegister(4);
   int16_t threadId = currentThread->getThreadId();
   ThreadKind Kind = currentThread->getKind();
+
   // Print exit status
   DEBUG('x', "Thread %s exited with status %d\n", currentThread->getName(),
         exitStatus);
@@ -100,10 +101,11 @@ void NachOS_Exit() {  // System call 1
   if (Kind == USR_EXEC) {
     // Exec threads are in charge of signaling the parent thread that they are
     // done executing and saving their exit status in the thread table.
-    DEBUG('x', "User thread %s exiting\n", currentThread->getName());
-    Semaphore* semaphore = threadTable->getSemToJoinIn(threadId);
-    semaphore->V();
+    DEBUG('x', "User thread %d exiting\n", threadId);
     threadTable->setExitStatus(threadId, exitStatus);
+    // Signal the parent thread that this thread is done executing
+    threadTable->getSemToJoinIn(threadId)->V();
+
     DEBUG('x', "Semaphore signaled and exit status saved\n");
     // parent thread is normally in charge of removing the child thread from the
     // table but...
@@ -116,30 +118,106 @@ void NachOS_Exit() {  // System call 1
     }
   } else if (Kind == USR_FORK) {
     // fork threads do not signal and they remove themselves from the table.
-    DEBUG('x', "Forked %s exiting\n", currentThread->getName());
+    DEBUG('x', "Forked thread %d exiting\n", threadId);
     threadTable->RemoveThread(threadId);
   } else {
     // main thread is in charge of removing itself from the table.
-    DEBUG('x', "Main thread exiting\n");
+    DEBUG('x', "Main thread id %d exiting\n", threadId);
     threadTable->RemoveThread(threadId);
   }
+  DEBUG('x', "Thread %i exited\n", threadId);
   currentThread->Yield();
   currentThread->Finish();
-  NachOS_IncreasePC();
 }
 
+void ExecuteThread(void* dummy) {  // for 64 bits version
+  (void)dummy;
+  DEBUG('x', "\nExecuteThread\n");
+  std::string fileName =
+      threadTable->GetThreadData(currentThread->getThreadId())->ExecutableName;
+  DEBUG('x', "Executable Filename: %s\n", fileName.c_str());
+  OpenFile* executable = fileSystem->Open(fileName.c_str());
+  if (executable == nullptr) {
+    DEBUG('x', "Unable to open file %s\n", fileName.c_str());
+    return;
+  }
+  DEBUG('x', "File opened\n");
+  AddrSpace* space = new AddrSpace(executable);
+  DEBUG('x', "AddrSpace created\n");
+  if (space == nullptr) {
+    DEBUG('x', "Unable to allocate address space\n");
+    delete executable;
+    return;
+  }
+  currentThread->space = space;
+  currentThread->openFiles = std::make_shared<OpenFilesTable>();
+  delete executable;
+  currentThread->space->InitRegisters();
+  currentThread->space->RestoreState();
+  DEBUG('x', "InitRegisters and RestoreState done, ready to run\n");
+  machine->Run();  // Jump to the user program
+  ASSERT(false);   // machine->Run never returns;
+}
 /*
  *  System call interface: SpaceId Exec( char * )
  */
 void NachOS_Exec() {  // System call 2
+  DEBUG('x', "Exec called\n");
+  // Read the file name from user memory, as indicated by register 4.
+  int64_t fileNameAddress = machine->ReadRegister(4);
+  // Buffer for the file name as a string.
+  std::string fileName = readFileName(fileNameAddress);
+  DEBUG('x', "Executable Filename: %s\n", fileName.c_str());
+  // we need to create a new thread and run the executable
+  Thread* execThread = new Thread("Exec Thread");
+  // set the kind of thread
+  execThread->setKind(USR_EXEC);
+  // add thread to the thread table and get an thread identifier (tid)
+  int16_t tid = threadTable->AddThread(execThread, fileName);
+  if (tid == -1) {  // no more threads available
+    DEBUG('x', "No more threads available\n");
+    // we return -1
+    machine->WriteRegister(2, -1);
+    NachOS_IncreasePC();
+    return;
+  }
+  DEBUG('x', "Exex thread created with id %d\n", tid);
+  // if we get here, we have a valid thread id
+  execThread->setThreadId(tid);
+  // set the parent thread id
+  execThread->setParentId(currentThread->getThreadId());
+  // we check if there is an available thread
+  execThread->Fork(ExecuteThread, (void*)fileName.c_str());
+  // we return the thread id
+  machine->WriteRegister(2, tid);
+  currentThread->Yield();
+  NachOS_IncreasePC();
 }
 
-/*
+/**
  *  System call interface: int Join( SpaceId )
  */
 void NachOS_Join() {  // System call 3
+  // we get the thread id of the thread we want to join
+  int32_t tid = machine->ReadRegister(4);
+  DEBUG('x', "Joining thread %d\n", tid);
+  // we check if the thread id is valid
+  if (threadTable->IsJoinable(tid)) {
+    // we wait for the thread to finish
+    threadTable->getSemToJoinIn(tid)->P();
+    // we get the exit status of the thread
+    int exitStatus = threadTable->GetThreadData(tid)->exitStatus;
+    // delete thread from thread table
+    threadTable->RemoveThread(tid);
+    // we return the exit status
+    machine->WriteRegister(2, exitStatus);
+    NachOS_IncreasePC();
+  } else {
+    // we return -1 to indicate that the thread id is invalid
+    machine->WriteRegister(2, -1);
+    NachOS_IncreasePC();
+  }
 }
-
 /**
  * @brief NachOS Create System call
  * This system call is used to create a new file with read and write permissions
@@ -166,7 +244,7 @@ void NachOS_Create() {  // System call 4
       DEBUG('o', "Unable to create file: %s\n", fileName.c_str());
       DEBUG('o', "Error: %s\n", strerror(errno));
     } else {
-      currentThread->space->openFiles->Open(fileDescriptor);
+      currentThread->openFiles->Open(fileDescriptor);
     }
     // use system semaphore to protect file creation (semaphore 2)
     sysSemaphoreTable->GetSemaphore(2)->V();
@@ -201,7 +279,7 @@ void NachOS_Open() {  // System call 5
   }
   DEBUG('o', "Opened file: %s\n", fileName.c_str());
   // Cast the file descriptor to an OpenFileId
-  OpenFileId openFileId = currentThread->space->openFiles->Open(fd);
+  OpenFileId openFileId = currentThread->openFiles->Open(fd);
   if (openFileId == -1) {
     // If the file couldn't be opened, write -1 to register 2 and increment the
     // PC
@@ -263,14 +341,14 @@ void NachOS_Write() {  // System call 7
       // We're writing to a file, print debug message
       DEBUG('o', "Writing to file %d (NachOS handle)...\n", fileDescriptor);
       // Check if the file is open
-      bool isOpen = currentThread->space->openFiles->isOpened(fileDescriptor);
+      bool isOpen = currentThread->openFiles->isOpened(fileDescriptor);
       if (isOpen) {  // check if the file is open locally
                      // use system semaphore to restrict access to file
                      // (semaphore 1)
         sysSemaphoreTable->GetSemaphore(1)->P();
         //  Get the UNIX file handle
         int32_t unixFileHandle =
-            currentThread->space->openFiles->getUnixHandle(fileDescriptor);
+            currentThread->openFiles->getUnixHandle(fileDescriptor);
         // Write the buffer to the UNIX file
         bytesWritten = write(unixFileHandle, buffer.c_str(), buffer.size());
         // Debug message for successful file write
@@ -339,12 +417,12 @@ void NachOS_Read() {  // System call 6
       break;
     default:  // Should be able to read any other file
       // Check if file is open
-      if (currentThread->space->openFiles->isOpened(descriptorFile)) {
+      if (currentThread->openFiles->isOpened(descriptorFile)) {
         DEBUG('w', "Reading from local file table %d (NachOS handle)...\n",
               descriptorFile);
         // Read from the Unix file
         int32_t bytesRead =
-            read(currentThread->space->openFiles->getUnixHandle(descriptorFile),
+            read(currentThread->openFiles->getUnixHandle(descriptorFile),
                  readBuffer, size);
         // For all bytes read
         for (int32_t charPos = 0; charPos < bytesRead; charPos++) {
@@ -377,9 +455,9 @@ void NachOS_Close() {  // System call 8
   // Get the OpenFileId from register 4.
   OpenFileId fileId = machine->ReadRegister(4);
   // Check if the file identified by the fileId is open.
-  if (currentThread->space->openFiles->isOpened(fileId)) {
+  if (currentThread->openFiles->isOpened(fileId)) {
     // If open, retrieve the corresponding Unix file descriptor
-    int32_t unixFileId = currentThread->space->openFiles->getUnixHandle(fileId);
+    int32_t unixFileId = currentThread->openFiles->getUnixHandle(fileId);
     // Attempt to close the file.
     int32_t status = close(unixFileId);
     // Check if the file was successfully closed.
@@ -391,7 +469,7 @@ void NachOS_Close() {  // System call 8
     } else {
       // If successful, remove the file's reference from the open files table
       // and set return value to 0 to signify success.
-      currentThread->space->openFiles->Close(fileId);
+      currentThread->openFiles->Close(fileId);
     }
   } else {
     // If the file is not open, log the failure and set return value to -1 to
@@ -463,7 +541,9 @@ void NachOS_Fork() {
   // Share open file table and address space (excluding stack) with the parent
   // thread. Use AddrSpace constructor to copy shared segments and create a new
   // stack.
-  childThread->space = std::make_shared<AddrSpace>(currentThread->space.get());
+  childThread->space = new AddrSpace(currentThread->space);
+  // Share the open file table with the parent thread.
+  childThread->openFiles = currentThread->openFiles;  // it is a share pointer
   // Kernel Fork to execute child code, pass the user routine address as a
   // parameter.
   size_t userFunctionAddress = static_cast<size_t>(machine->ReadRegister(4));

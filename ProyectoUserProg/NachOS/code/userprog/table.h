@@ -15,7 +15,7 @@ class OpenFilesTable {
                                         // thread correspondiente y el nachos
                                         // handle it
   void addEntry(int NachosHandle, int UnixHandle);
-  // void Print();               // Print contents
+  void Print();  // Print contents
 
  private:
   int* openFiles;    // A vector with user opened files
@@ -26,6 +26,6 @@ class OpenFilesTable {
   // cada espacio del vector es un thread diferente, cada thread tiene entonces,
   // su propio bitmap vector<BitMap*> *vecMapsOpenFiles; // Por ahora, se
   // comenta esto para usar otra solución
-  static const int16_t MAX_OPEN_FILES = 2000;
+  static const int16_t MAX_OPEN_FILES = 128;
 };
 #endif  // OPENFILESTABLE_H
