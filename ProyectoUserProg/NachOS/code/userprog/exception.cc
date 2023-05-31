@@ -675,24 +675,40 @@ void NachOS_Yield() {  // System call 10
  *  System call interface: Sem_t SemCreate( int )
  */
 void NachOS_SemCreate() {  // System call 11
+  int32_t semValue = static_cast<int32_t>(machine->ReadRegister(4));
+  Semaphore* sem = new Semaphore("semaphore", semValue);
+  int16_t semT = sysSemaphoreTable->AddSemaphore(sem);
+  machine->WriteRegister(2, semT);
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: int SemDestroy( Sem_t )
  */
 void NachOS_SemDestroy() {  // System call 12
+  int16_t semT = static_cast<int16_t>(machine->ReadRegister(4));
+  sysSemaphoreTable->RemoveSemaphore(semT);
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: int SemSignal( Sem_t )
  */
 void NachOS_SemSignal() {  // System call 13
+  int16_t semT = static_cast<int16_t>(machine->ReadRegister(4));
+  Semaphore* sem = sysSemaphoreTable->GetSemaphore(semT);
+  sem->V();
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: int SemWait( Sem_t )
  */
 void NachOS_SemWait() {  // System call 14
+  int16_t semT = static_cast<int16_t>(machine->ReadRegister(4));
+  Semaphore* sem = sysSemaphoreTable->GetSemaphore(semT);
+  sem->P();
+  NachOS_IncreasePC();
 }
 
 /*
