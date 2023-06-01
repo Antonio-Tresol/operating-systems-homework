@@ -123,7 +123,7 @@ class sysSocket {
    * @throws SocketException if connection was closed by peer
    * @return std::string the data read from socket
    */
-  int Read(void* buffer, int bufferSize) noexcept(false);
+  int sockRead(void* buffer, int bufferSize) noexcept(false);
   /**
    * @brief Writes a message to the socket.
    *
@@ -133,7 +133,7 @@ class sysSocket {
    * @param message - The message to be written to the socket.
    * @throws SocketException If the write operation fails.
    */
-  void Write(const std::string& message) noexcept(false);
+  void sockWrite(const std::string& message) noexcept(false);
 
   void Listen(int backlog) noexcept(false);
   /**
@@ -262,6 +262,8 @@ class sysSocket {
    */
   void SSLInitServer(const char* certFileName,
                      const char* keyFileName) noexcept(false);
+
+  int getIDSocket() noexcept(true) { return idSocket; }
 
  private:
   int idSocket{0};               ///< id of the socket

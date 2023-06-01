@@ -38,6 +38,7 @@ std::unique_ptr<Machine> machine;  // user program memory and registers
 std::unique_ptr<ThreadTable> threadTable;
 std::unique_ptr<SysSemaphoreTable> sysSemaphoreTable;
 std::unique_ptr<BitMap> memBitMap;
+std::unique_ptr<SysSocketTable> sysSocketTable;
 #endif
 
 #ifdef NETWORK
@@ -174,6 +175,7 @@ void Initialize(int argc, char **argv) {
   memBitMap = std::make_unique<BitMap>(NumPhysPages);
   threadTable = std::make_unique<ThreadTable>();
   sysSemaphoreTable = std::make_unique<SysSemaphoreTable>();
+  sysSocketTable = std::make_unique<SysSocketTable>();
 #endif
 
 #ifdef FILESYS
@@ -204,10 +206,6 @@ void Cleanup() {
 #endif
 
 #ifdef USER_PROGRAM
-  // delete machine;
-  // delete memBitMap;
-  // delete threadTable;
-  // delete sysSemaphoreTable;
 #endif
 
 #ifdef FILESYS_NEEDED

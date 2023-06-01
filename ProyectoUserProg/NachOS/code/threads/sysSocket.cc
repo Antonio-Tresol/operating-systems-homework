@@ -181,7 +181,7 @@ void sysSocket::connectIPv4(const char *host, int portToConnect) {
   // connect() system call connects this active socket to a listening socket
   // pasive socket. usually used for TCP sockets.
   status = connect(idSocket, hostIpv4Ptr, hostIpv4Len);
-  if (status == -1) {
+  if (status != 0) {
     throw SocketException("Error connecting to IPv4 address", "Socket::Connect",
                           errno);
   }
@@ -258,7 +258,7 @@ void sysSocket::Connect(const char *host, const char *service) {
   }
 }
 
-int sysSocket::Read(void *buffer, int bufferSize) {
+int sysSocket::sockRead(void *buffer, int bufferSize) {
   int nBytesRead = -1;
   // Read from the socket and store the data in buffer using system call read
   nBytesRead = read(this->idSocket, buffer, bufferSize);
@@ -271,7 +271,7 @@ int sysSocket::Read(void *buffer, int bufferSize) {
   return nBytesRead;
 }
 
-void sysSocket::Write(const std::string &message) {
+void sysSocket::sockWrite(const std::string &message) {
   int status = -1;
   // Write to the socket using system call write
   status = write(this->idSocket, message.c_str(), message.size());

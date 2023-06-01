@@ -448,8 +448,21 @@ void NachOS_Write() {  // System call 7
       // We're writing to a file, print debug message
       DEBUG('o', "Writing to file %d (NachOS handle)...\n", fileDescriptor);
       // Check if the file is open
-      bool isOpen = currentThread->openFiles->isOpened(fileDescriptor);
-      if (isOpen) {  // File is open locally
+      if (sysSocketTable->IsSocket(fileDescriptor)) {
+        // If the file descriptor is a socket, write to the socket
+        DEBUG('y', "Writing to socket %d...\n", fileDescriptor);
+        // Write the buffer to the socket
+        sysSocket* socket = sysSocketTable->GetSocket(fileDescriptor);
+        try {
+          socket->sockWrite(buffer);
+          DEBUG('y', "Successfully wrote to socket %d\n", fileDescriptor);
+        } catch (std::exception& e) {
+          DEBUG('y', "Error writing to socket: %s\n", e.what());
+          // Increment the program counter
+          NachOS_IncreasePC();
+          return;
+        }
+      } else if (currentThread->openFiles->isOpened(fileDescriptor)) {
         // Use system semaphore to restrict access to file (semaphore 1)
         sysSemaphoreTable->GetSemaphore(1)->P();
         // Get the UNIX file handle
@@ -477,7 +490,6 @@ void NachOS_Write() {  // System call 7
   // Increment the program counter
   NachOS_IncreasePC();
 }
-
 /**
  * @brief The Read system call for NachOS.
  *
@@ -491,7 +503,6 @@ void NachOS_Write() {  // System call 7
  * @return the number of characters read, or -1 if an error occurred. Returns on
  *        register 2.
  */
-// System call for reading data from a file or console
 void NachOS_Read() {  // System call 6
   // Obtain the parameters from the machine registers
   // Get the memory address of the buffer from register 4
@@ -535,8 +546,29 @@ void NachOS_Read() {  // System call 6
       machine->WriteRegister(2, -1);
       break;
     default:  // Can read from any other file
-      // Check if the file is open
-      if (currentThread->openFiles->isOpened(descriptorFile)) {
+      // check if it is a socket
+      if (sysSocketTable->IsSocket(descriptorFile)) {
+        DEBUG('y', "Reading from socket %d...\n", descriptorFile);
+        sysSocket* socket = sysSocketTable->GetSocket(descriptorFile);
+        try {
+          DEBUG('y', "Reading from socket...\n");
+          int32_t bytesRead = socket->sockRead(readBuffer, size);
+          DEBUG('y', "Read %d bytes from socket\n", bytesRead);
+        } catch (std::exception& e) {
+          DEBUG('y', "Error reading from socket %d: %s\n", descriptorFile,
+                e.what());
+          machine->WriteRegister(2, -1);
+          delete[] readBuffer;
+          NachOS_IncreasePC();
+          return;
+        }
+        for (int i = 0; i < size; i++) {
+          machine->WriteMem(bufferAddr + i, 1, readBuffer[i]);
+        }
+        machine->WriteRegister(2, size);
+        DEBUG('y', "Finished reading from socket\n");
+        //  Check if the file is open
+      } else if (currentThread->openFiles->isOpened(descriptorFile)) {
         // If the file is open, read from it
         DEBUG('w', "Reading from local file table %d (NachOS handle)...\n",
               descriptorFile);
@@ -575,8 +607,11 @@ void NachOS_Close() {  // System call 8
   // Get the OpenFileId from register 4. This is the ID assigned to the open
   // file by the operating system.
   OpenFileId fileId = machine->ReadRegister(4);
-  // Check if the file identified by the fileId is open.
-  if (currentThread->openFiles->isOpened(fileId)) {
+  // check if it is a socket
+  if (sysSocketTable->IsSocket(fileId)) {
+    sysSocketTable->RemoveSocket(fileId);
+    // Check if the file identified by the fileId is open.
+  } else if (currentThread->openFiles->isOpened(fileId)) {
     // If open, retrieve the corresponding Unix file descriptor
     int32_t unixFileId = currentThread->openFiles->getUnixHandle(fileId);
     // Attempt to close the file using the Unix file descriptor.
@@ -678,8 +713,10 @@ void NachOS_Yield() {  // System call 10
   NachOS_IncreasePC();
 }
 
-/*
- *  System call interface: Sem_t SemCreate( int )
+/**
+ * @brief Creates a semaphore in the NachOS system.
+ * @param semValue Value of semaphore to be created (first in register 4).
+ * @return void
  */
 void NachOS_SemCreate() {  // System call 11
   int32_t semValue = static_cast<int32_t>(machine->ReadRegister(4));
@@ -689,8 +726,11 @@ void NachOS_SemCreate() {  // System call 11
   NachOS_IncreasePC();
 }
 
-/*
- *  System call interface: int SemDestroy( Sem_t )
+/**
+ * @brief Destroys a semaphore in the NachOS system.
+ * @param semT Identifier for the semaphore to be destroyed (in register
+ * 4).
+ * @return void
  */
 void NachOS_SemDestroy() {  // System call 12
   int16_t semT = static_cast<int16_t>(machine->ReadRegister(4));
@@ -698,8 +738,11 @@ void NachOS_SemDestroy() {  // System call 12
   NachOS_IncreasePC();
 }
 
-/*
- *  System call interface: int SemSignal( Sem_t )
+/**
+ * @brief Signals a semaphore in the NachOS system.
+ * @param semT Identifier for the semaphore to be signalled (in register
+ * 4).
+ * @return void
  */
 void NachOS_SemSignal() {  // System call 13
   int16_t semT = static_cast<int16_t>(machine->ReadRegister(4));
@@ -708,8 +751,10 @@ void NachOS_SemSignal() {  // System call 13
   NachOS_IncreasePC();
 }
 
-/*
- *  System call interface: int SemWait( Sem_t )
+/**
+ * @brief Waits on a semaphore in the NachOS system.
+ * @param semT Identifier for the semaphore to wait on (in register 4).
+ * @return void
  */
 void NachOS_SemWait() {  // System call 14
   int16_t semT = static_cast<int16_t>(machine->ReadRegister(4));
@@ -773,39 +818,168 @@ void NachOS_CondBroadcast() {  // System call 23
 }
 
 /*
- *  System call interface: Socket_t Socket( int, int )
+ *  System call interface: Socket_t Socket( int, int, int)
  */
 void NachOS_Socket() {  // System call 30
+  int32_t domain = static_cast<int32_t>(machine->ReadRegister(4));
+  int32_t protocol = static_cast<int32_t>(machine->ReadRegister(5));
+  DEBUG('y', "SocketSyscall- Domain: %d, Protocol: %d \n", domain, protocol);
+  char socketType;
+  if (protocol == SOCK_STREAM_NachOS) {
+    socketType = 's';
+  } else if (protocol == SOCK_DGRAM_NachOS) {
+    socketType = 'd';
+  }
+  bool isIpv6 = static_cast<bool>(domain);
+  sysSocket* socket = new sysSocket(socketType, isIpv6);
+  if (socket == nullptr) {
+    DEBUG('y', "Socket creation failed\n");
+    machine->WriteRegister(2, -1);
+  }
+  int16_t socketT = sysSocketTable->AddSocket(socket);
+  if (socketT == -1) {
+    DEBUG('y', "Socket table is full\n");
+    delete socket;
+    machine->WriteRegister(2, -1);
+  } else {
+    DEBUG('y', "Socket table index: %d\n", socketT);
+    machine->WriteRegister(2, socketT);
+  }
+  NachOS_IncreasePC();
 }
 
-/*
- *  System call interface: Socket_t Connect( char *, int )
+/**
+ *  System call interface: Socket_t Connect( Socket_t SockId, char *IP_Addr, int
+ * port)
  */
 void NachOS_Connect() {  // System call 31
+  DEBUG('y', "ConnectSyscall\n");
+  int16_t socketT = static_cast<int16_t>(machine->ReadRegister(4));
+  int32_t ipAddr = static_cast<int32_t>(machine->ReadRegister(5));
+  std::string host = readFileName(ipAddr);
+  int32_t port = static_cast<int32_t>(machine->ReadRegister(6));
+  DEBUG('y', "Socket table index: %d\n", socketT);
+  sysSocket* socket = sysSocketTable->GetSocket(socketT);
+  if (socket == nullptr) {
+    DEBUG('y', "Socket not found\n");
+    machine->WriteRegister(2, -1);
+  } else {
+    DEBUG('y', "Socket found\n");
+    try {
+      socket->Connect(host.c_str(), port);
+      DEBUG('y', "Socket connection successful\n");
+    } catch (const std::exception& e) {
+      DEBUG('y', "Socket connection failed\n");
+      machine->WriteRegister(2, -1);
+    }
+  }
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: int Bind( Socket_t, int )
  */
 void NachOS_Bind() {  // System call 32
+  DEBUG('y', "BindSyscall\n");
+  int16_t socketT = static_cast<int16_t>(machine->ReadRegister(4));
+  int32_t port = static_cast<int32_t>(machine->ReadRegister(5));
+  DEBUG('y', "Socket table index: %d\n", socketT);
+  sysSocket* socket = sysSocketTable->GetSocket(socketT);
+  if (socket == nullptr) {
+    DEBUG('y', "Socket not found\n");
+    machine->WriteRegister(2, -1);
+  } else {
+    DEBUG('y', "Socket found\n");
+    try {
+      socket->Bind(port);
+      DEBUG('y', "Socket bind successful\n");
+    } catch (const std::exception& e) {
+      DEBUG('y', "Socket bind failed\n");
+      machine->WriteRegister(2, -1);
+    }
+  }
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: int Listen( Socket_t, int )
  */
 void NachOS_Listen() {  // System call 33
+  DEBUG('y', "ListenSyscall\n");
+  int16_t socketT = static_cast<int16_t>(machine->ReadRegister(4));
+  int32_t backlog = static_cast<int32_t>(machine->ReadRegister(5));
+  DEBUG('y', "Socket table index: %d\n", socketT);
+  sysSocket* socket = sysSocketTable->GetSocket(socketT);
+  if (socket == nullptr) {
+    DEBUG('y', "Socket not found\n");
+    machine->WriteRegister(2, -1);
+  } else {
+    DEBUG('y', "Socket found\n");
+    try {
+      socket->Listen(backlog);
+      DEBUG('y', "Socket listen successful\n");
+    } catch (const std::exception& e) {
+      DEBUG('y', "Socket listen failed\n");
+      machine->WriteRegister(2, -1);
+    }
+  }
+  NachOS_IncreasePC();
 }
 
 /*
  *  System call interface: int Accept( Socket_t )
  */
 void NachOS_Accept() {  // System call 34
+  DEBUG('y', "AcceptSyscall\n");
+  int serverSocketT = static_cast<int16_t>(machine->ReadRegister(4));
+  DEBUG('y', "Socket table index: %d\n", serverSocketT);
+  sysSocket* serverSocket = sysSocketTable->GetSocket(serverSocketT);
+  sysSocket* clientSocket = nullptr;
+  if (serverSocket == nullptr) {
+    DEBUG('y', "Socket not found\n");
+    machine->WriteRegister(2, -1);
+  } else {
+    DEBUG('y', "Socket found\n");
+    try {
+      clientSocket = serverSocket->Accept();
+      DEBUG('y', "Socket accept successful\n");
+      int16_t clientSocketT = sysSocketTable->AddSocket(clientSocket);
+      if (clientSocketT == -1) {
+        DEBUG('y', "Socket table is full\n");
+        delete clientSocket;
+        machine->WriteRegister(2, -1);
+      } else {
+        DEBUG('y', "Socket table index: %d\n", clientSocketT);
+        machine->WriteRegister(2, clientSocketT);
+      }
+    } catch (const std::exception& e) {
+      DEBUG('y', "Socket accept failed\n");
+      machine->WriteRegister(2, -1);
+    }
+  }
+  NachOS_IncreasePC();
 }
 
-/*
+/**
  *  System call interface: int Shutdown( Socket_t, int )
  */
 void NachOS_Shutdown() {  // System call 25
+  int16_t socketT = static_cast<int16_t>(machine->ReadRegister(4));
+  int32_t how = static_cast<int32_t>(machine->ReadRegister(5));
+  DEBUG('y', "Socket table index: %d\n", socketT);
+  sysSocket* socket = sysSocketTable->GetSocket(socketT);
+  if (socket == nullptr) {
+    DEBUG('y', "Socket not found\n");
+    machine->WriteRegister(2, -1);
+  } else {
+    DEBUG('y', "Socket found\n");
+    try {
+      socket->Shutdown(how);
+    } catch (const std::exception& e) {
+      DEBUG('y', "Socket shutdown failed\n");
+      machine->WriteRegister(2, -1);
+    }
+  }
 }
 
 //----------------------------------------------------------------------

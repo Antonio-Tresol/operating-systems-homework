@@ -39,6 +39,7 @@ extern std::unique_ptr<Machine> machine;  // user program memory and registers
 extern std::unique_ptr<ThreadTable> threadTable;
 extern std::unique_ptr<SysSemaphoreTable> sysSemaphoreTable;
 extern std::unique_ptr<BitMap> memBitMap;
+extern std::unique_ptr<SysSocketTable> sysSocketTable;
 #endif
 
 #ifdef FILESYS_NEEDED  // FILESYS or FILESYS_STUB
