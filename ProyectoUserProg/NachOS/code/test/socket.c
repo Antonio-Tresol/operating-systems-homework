@@ -9,5 +9,6 @@ int main() {
   Write("GET / HTTP/1.0\r\n\r\n", 32, id);
   Read(a, 512, id);
   Write(a, 512, 1);
+  Write("\n", 1, 1);
   Close(id);
 }
