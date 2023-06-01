@@ -26,7 +26,7 @@
 # of liability and disclaimer of warranty provisions.
 
 CFLAGS = -g -Wall -Wshadow $(INCPATH) $(DEFINES) $(HOST) -DCHANGED
-LDFLAGS =
+LDFLAGS = -lssl -lcrypto 
 
 # These definitions may change as the software is updated.
 # Some of them are also system dependent
@@ -51,7 +51,10 @@ THREAD_H =../threads/copyright.h\
 	../machine/stats.h\
 	../machine/timer.h\
 	../threads/preemptive.h\
-	../threads/sysDataStructures.h
+	../threads/sysDataStructures.h\
+	../threads/sysSocketLib.h\
+	../threads/sysSocket.h\
+	../threads/SockExcept.h
 
 THREAD_C =../threads/main.cc\
 	../threads/scheduler.cc\
@@ -66,13 +69,16 @@ THREAD_C =../threads/main.cc\
 	../machine/stats.cc\
 	../machine/timer.cc\
 	../threads/preemptive.cc\
-	../threads/sysDataStructures.cc
+	../threads/sysDataStructures.cc\
+	../threads/sysSocketLib.cc\
+	../threads/sysSocket.cc\
+	../threads/SockExcept.cc
 
 THREAD_S = ../threads/switch.s
 
 THREAD_O =main.o scheduler.o synch.o system.o thread.o \
 	utility.o threadtest.o interrupt.o stats.o sysdep.o timer.o \
-	preemptive.o diningph.o sysDataStructures.o
+	preemptive.o diningph.o sysDataStructures.o sysSocketLib.o sysSocket.o SockExcept.o
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\

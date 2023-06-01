@@ -34,6 +34,7 @@ extern Timer *timer;                 // the hardware alarm clock
 
 #include "machine.h"
 #include "sysDataStructures.h"
+#include "sysSocketLib.h"
 extern std::unique_ptr<Machine> machine;  // user program memory and registers
 extern std::unique_ptr<ThreadTable> threadTable;
 extern std::unique_ptr<SysSemaphoreTable> sysSemaphoreTable;
