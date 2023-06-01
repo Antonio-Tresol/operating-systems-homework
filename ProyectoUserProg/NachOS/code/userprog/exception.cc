@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include <cerrno>
+#include <iostream>
 
 #include "copyright.h"
 #include "syscall.h"
@@ -507,16 +508,22 @@ void NachOS_Read() {  // System call 6
       // Use semaphore to restrict access to console input (semaphore 3)
       sysSemaphoreTable->GetSemaphore(3)->P();
       // Read from the console into the buffer
-      scanf("%s", readBuffer);
+      std::string line;
+      std::getline(std::cin, line);
+      line.push_back('\n');
+      // Copy the string into the buffer
+      strncpy(readBuffer, line.c_str(), size);
       sysSemaphoreTable->GetSemaphore(3)->V();
       int32_t readChar = 0;
-      // Continue until we've reached the specified size or end of string
-      while (readChar < size &&
-             readChar < static_cast<int32_t>(strnlen(readBuffer, size)) &&
-             readBuffer[readChar] != 0) {
-        // Write each character from the buffer into user memory at the
-        // corresponding address
-        machine->WriteMem(bufferAddr + readChar, 1, readBuffer[readChar]);
+      // For each character read, write it into user memory at the corresponding
+      // address
+      for (int32_t charPos = 0; charPos < size; charPos++) {
+        if (readBuffer[charPos] == '\n') {
+          break;
+        }
+        // Write the character into user memory
+        machine->WriteMem(bufferAddr + charPos, 1, readBuffer[charPos]);
+        // Increment the number of characters read
         readChar++;
       }
       // Write the number of characters read into register 2
