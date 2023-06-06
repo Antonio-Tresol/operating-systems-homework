@@ -981,7 +981,9 @@ void NachOS_Shutdown() {  // System call 25
     }
   }
 }
-
+int NachOS_PAGE_FAULT_HANDLER() {
+  // TODO implement page fault handler
+}
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -1116,6 +1118,7 @@ void ExceptionHandler(ExceptionType which) {
       break;
 
     case PageFaultException: {
+      NachOS_PAGE_FAULT_HANDLER();
       break;
     }
 
