@@ -14,6 +14,9 @@
 #define ADDRSPACE_H
 
 #include <memory>
+#ifdef VM
+#include <string>
+#endif
 
 #include "copyright.h"
 #include "filesys.h"
@@ -44,12 +47,22 @@ class AddrSpace {
 
   void SaveState();     // Save/restore address space-specific
   void RestoreState();  // info on a context switch
+  #ifdef VM
+  // to retrieve the executable file when we need to load a clean page
+  void setExecutable(std::string filename);
+  std::string getExecutable();
+  #endif
 
  private:
   TranslationEntry *pageTable;  // Assume linear page table
                                 // translation for now!
   u_int32_t numPages;           // Number of pages in the virtual
                                 // address space
+  #ifdef VM
+  // to retrieve the executable file when we need to load a clean page
+  // on demand
+  std::string executableFilename;
+  #endif
 };
 
 #endif  // ADDRSPACE_H

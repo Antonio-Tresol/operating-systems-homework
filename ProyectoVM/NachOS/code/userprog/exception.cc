@@ -980,9 +980,24 @@ void NachOS_Shutdown() {  // System call 25
       machine->WriteRegister(2, -1);
     }
   }
+  NachOS_IncreasePC();
 }
 int NachOS_PAGE_FAULT_HANDLER() {
   // TODO implement page fault handler
+  DEBUG('y', "Page fault handler\n");
+  // stats page fault++
+  // 1. Get the faulting virtual address
+  // 2. Check if the address is valid
+  // hay que identificar el tipo de page fault.
+  // ver page table process, que esta en el addrspace
+  // hard page fault:
+    // hay que revisar la entry que dio page fault
+    // hay que revisar si esa entry esta sucia --> esta en el swap
+    // si esta limpia --> esta en el executable
+  // Soft page fault:
+    // Soft page fault: la page table del proceso tiene la entry marcada como
+    // valida, pero no tiene mapeada la pagina en memoria fisica.
+    // tentativamente se deberia resolver con inverted page table
 }
 //----------------------------------------------------------------------
 // ExceptionHandler

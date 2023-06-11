@@ -122,7 +122,11 @@ AddrSpace::AddrSpace(OpenFile *executable) {
     }
     pageTable[i].virtualPage = i;
     pageTable[i].physicalPage = pageLocation;
-    pageTable[i].valid = true;
+     #ifdef VM
+      pageTable[page].valid = false;
+      #else
+      pageTable[page].valid = true
+    #endif
     pageTable[i].use = false;
     pageTable[i].dirty = false;
     // If the code segment was entirely on a separate page,
@@ -137,6 +141,7 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   // bzero(machine->mainMemory, size);
   // Copy the code and data segments into memory.
   DEBUG('s', "\ncurrentThread->space->numPages: %d\n", numPages);
+  
   for (i = 0; i < sizeOfCodeAndData; i++) {
     if (i >= numPages) {
       DEBUG('s', "Page index out of range\n");
@@ -173,6 +178,7 @@ AddrSpace::AddrSpace(OpenFile *executable) {
 }
 
 AddrSpace::AddrSpace(AddrSpace *parentAdrSpace) {
+  // TODO : for vm, copy on write must be implemented here.
   // Copy number of pages and the open files table from parent address space.
   this->numPages = parentAdrSpace->numPages;
   // The location of the page in the physical memory.
@@ -264,7 +270,10 @@ void AddrSpace::InitRegisters() {
 //	For now, nothing!
 //----------------------------------------------------------------------
 
-void AddrSpace::SaveState() {}
+void AddrSpace::SaveState() {
+  // guardar las paginas sucias en swap
+  // hay que hacerle flush tlb
+}
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState
