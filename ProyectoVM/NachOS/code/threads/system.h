@@ -41,7 +41,11 @@ extern std::unique_ptr<SysSemaphoreTable> sysSemaphoreTable;
 extern std::unique_ptr<BitMap> memBitMap;
 extern std::unique_ptr<SysSocketTable> sysSocketTable;
 #endif
-
+#ifdef VM
+#include <vector>
+// the index of the address space in the vector is the address space id
+extern std::vector<AddrSpace *> addrSpaceTable;
+#endif
 #ifdef FILESYS_NEEDED  // FILESYS or FILESYS_STUB
 #include "filesys.h"
 extern FileSystem *fileSystem;

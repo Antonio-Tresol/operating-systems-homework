@@ -40,7 +40,9 @@ std::unique_ptr<SysSemaphoreTable> sysSemaphoreTable;
 std::unique_ptr<BitMap> memBitMap;
 std::unique_ptr<SysSocketTable> sysSocketTable;
 #endif
-
+#ifdef VM
+std::vector<AddrSpace *> addrSpaceTable;
+#endif
 #ifdef NETWORK
 PostOffice *postOffice;
 #endif
