@@ -47,22 +47,24 @@ class AddrSpace {
 
   void SaveState();     // Save/restore address space-specific
   void RestoreState();  // info on a context switch
-  #ifdef VM
+#ifdef VM
   // to retrieve the executable file when we need to load a clean page
   void setExecutable(std::string filename);
   std::string getExecutable();
-  #endif
+  TranslationEntry *getPageTable() { return pageTable; }
+  u_int32_t getNumPages() { return numPages; }
+#endif
 
  private:
   TranslationEntry *pageTable;  // Assume linear page table
                                 // translation for now!
   u_int32_t numPages;           // Number of pages in the virtual
                                 // address space
-  #ifdef VM
+#ifdef VM
   // to retrieve the executable file when we need to load a clean page
   // on demand
   std::string executableFilename;
-  #endif
+#endif
 };
 
 #endif  // ADDRSPACE_H

@@ -60,7 +60,107 @@ static void SwapHeader(NoffHeader *noffH) {
 // The address space is the range of addressable memory given to a process.
 // The constructor takes a pointer to an OpenFile object (executable) as a
 // parameter.
+#ifdef VM
+AddrSpace::AddrSpace(OpenFile *executable) {
+  // This is a header for the NOFF (NACHOS Object File Format) binary format.
+  NoffHeader noffH;
+  u_int32_t i, size;
+  // Read the NOFF header from the start of the executable file.
+  executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+  // Check if the file is in NOFF format and if not, swap the header.
+  if ((noffH.noffMagic != NOFFMAGIC) &&
+      (WordToHost(noffH.noffMagic) == NOFFMAGIC))
+    SwapHeader(&noffH);
+  // Assert that the file is indeed in NOFF format.
+  ASSERT(noffH.noffMagic == NOFFMAGIC);
 
+  //***************Variables for Readability**********************************//
+  // Fetch the size of the code segment from the header
+  u_int32_t codeSize = noffH.code.size;
+  // Fetch the size of the initialized data segment from the header
+  u_int32_t dataSize = noffH.initData.size;
+  // Calculate how many pages the uninitData segment and the stack together
+  // occupy
+  u_int32_t uninitDataSize = noffH.uninitData.size;
+  // Calculate how many pages the uninitData segment and the stack together
+  // occupy
+  // Calculate the size of the address space required for this executable.
+  // This is done by adding the size of the code, initialized data and
+  // uninitialized data segments and the user stack size.
+  size = codeSize + dataSize + uninitDataSize + UserStackSize;
+  // Calculate the number of pages required by rounding up the size to the
+  // nearest page boundary.
+  numPages = divRoundUp(size, PageSize);
+  // Recalculate the size in case it was rounded up to the nearest page
+  // boundary.
+  size = numPages * PageSize;
+  //******************Variables for Readability*******************************//
+  DEBUG('a',
+        "Executable segments: code size %d, data size %d, unitialized data "
+        "size %d\n",
+        codeSize, dataSize, uninitDataSize);
+
+  // Print debug information about the address space being initialized.
+  DEBUG('a', "Initializing address space, number of pages %d, size %d\n",
+        numPages, size);
+  // Set up the translation between virtual and physical addresses by creating
+  // the page table.
+  pageTable = new TranslationEntry[numPages];
+  for (i = 0; i < numPages; i++) {
+    pageTable[i].virtualPage = i;
+    pageTable[i].physicalPage = -1;
+    pageTable[i].valid = false;
+    pageTable[i].use = false;
+    pageTable[i].dirty = false;
+    // If the code segment was entirely on a separate page,
+    // we could set its pages to be read-only.
+    pageTable[i].readOnly = false;
+  }
+}
+AddrSpace::AddrSpace(AddrSpace *parentAdrSpace) {
+  // Copy number of pages and the open files table from parent address space.
+  this->numPages = parentAdrSpace->numPages;
+  // The location of the page in the physical memory.
+  u_int32_t pageLocation = 0;
+  u_int32_t virtualPageLocation = 0;
+  // Size of shared memory is all sectors except the stack.
+  u_int32_t sharedMemory = this->numPages - divRoundUp(UserStackSize, PageSize);
+  // Set up the translation from virtual to physical addresses.
+  pageTable = new TranslationEntry[this->numPages];
+  // Set shared memory for the code and data segments as same for the parent
+  // process.
+  for (u_int32_t page = 0; page < sharedMemory; page++) {
+    pageLocation = parentAdrSpace->pageTable[page].physicalPage;
+    virtualPageLocation = parentAdrSpace->pageTable[page].virtualPage;
+    pageTable[page].physicalPage = pageLocation;
+    pageTable[page].virtualPage = virtualPageLocation;
+    pageTable[page].valid = parentAdrSpace->pageTable[page].valid;
+    pageTable[page].use = parentAdrSpace->pageTable[page].use;
+    pageTable[page].dirty = parentAdrSpace->pageTable[page].dirty;
+    // Each page is marked as read-only, implementing the copy-on-write feature.
+    // This implies that if a write is attempted on any of these pages, a page
+    // fault will occur, when you can handle the copying of the
+    // page to a new location in memory.
+    // TODO : Implement copy on write.[1]
+    pageTable[page].readOnly = true;
+    // [1][ whenever a write is attempted to any read-only page, we should
+    // handle the resulting page fault by duplicating the page to a new physical
+    // page, and update the page table to map the virtual page to the new
+    // physical page. ]
+  }
+  // Allocate new space for the stack.
+  for (u_int32_t pagesLeft = sharedMemory; pagesLeft < this->numPages;
+       pagesLeft++) {
+    // no physical page is allocated for the stack.
+    pageTable[pagesLeft].physicalPage = pageLocation;
+    pageTable[pagesLeft].virtualPage = pagesLeft;
+    pageTable[pagesLeft].valid = false;
+    pageTable[pagesLeft].use = false;
+    pageTable[pagesLeft].dirty = false;
+    pageTable[pagesLeft].readOnly = false;
+  }
+}
+#else
 AddrSpace::AddrSpace(OpenFile *executable) {
   // This is a header for the NOFF (NACHOS Object File Format) binary format.
   NoffHeader noffH;
@@ -115,25 +215,14 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   // the page table.
   pageTable = new TranslationEntry[numPages];
   for (i = 0; i < numPages; i++) {
-    int64_t pageLocation = memBitMap->Find();
-    if (pageLocation == -1) {
-      DEBUG('a', "Out of memory, no free pages in the bitmap\n");
-      return;
-    }
     pageTable[i].virtualPage = i;
-    pageTable[i].physicalPage = pageLocation;
-     #ifdef VM
-      pageTable[page].valid = false;
-      #else
-      pageTable[page].valid = true
-    #endif
+    pageTable[i].physicalPage = -1;
+    pageTable[i].valid = false;
     pageTable[i].use = false;
     pageTable[i].dirty = false;
     // If the code segment was entirely on a separate page,
     // we could set its pages to be read-only.
     pageTable[i].readOnly = false;
-    bzero(machine->mainMemory + (pageTable[i].physicalPage * PageSize),
-          PageSize);
   }
   // Zero out the entire address space, to zero the uninitialized data segment
   // and the stack segment.
@@ -141,19 +230,20 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   // bzero(machine->mainMemory, size);
   // Copy the code and data segments into memory.
   DEBUG('s', "\ncurrentThread->space->numPages: %d\n", numPages);
-  
   for (i = 0; i < sizeOfCodeAndData; i++) {
     if (i >= numPages) {
       DEBUG('s', "Page index out of range\n");
       ASSERT(false);
     }
-    u_int32_t pageLocation = this->pageTable[i].physicalPage;
-    DEBUG('s', "Copying page at page %d\n", pageLocation);
-
-    // if (PageSize * pageLocation >= size) {
-    //   DEBUG('s', "Memory location out of range\n");
-    //   ASSERT(false);
-    // }
+    u_int32_t pageLocation = memBitMap->Find();
+    if (pageLocation == -1) {
+      DEBUG('a', "Out of memory, no free pages in the bitmap\n");
+      return;
+    }
+    pageTable[i].physicalPage = pageLocation;
+    pageTable[i].valid = true;
+    pageTable[i].use = false;
+    pageTable[i].dirty = false;
 
     u_int32_t startPositionOnFile = codeStart + (i * PageSize);
     DEBUG('s', "Copying page at page %d, and file location 0x%x\n",
@@ -224,7 +314,7 @@ AddrSpace::AddrSpace(AddrSpace *parentAdrSpace) {
     pageTable[pagesLeft].readOnly = false;
   }
 }
-
+#endif
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
 // 	Dealloate an address space.  Nothing for now!
@@ -272,7 +362,8 @@ void AddrSpace::InitRegisters() {
 
 void AddrSpace::SaveState() {
   // guardar las paginas sucias en swap
-  // hay que hacerle flush tlb
+  // hay que hacerle invalidas todas las entradas la table lookaside buffer
+  // also we need to make sure that
 }
 
 //----------------------------------------------------------------------
@@ -282,8 +373,15 @@ void AddrSpace::SaveState() {
 //
 //      For now, tell the machine where to find the page table.
 //----------------------------------------------------------------------
-
+#ifdef VM
+void AddrSpace::RestoreState() {
+  // TODO: restore state
+  // restoring the pages of the process using the inverted page table
+  // the protect pages using inverted page table
+}
+#else
 void AddrSpace::RestoreState() {
   machine->pageTable = pageTable;
   machine->pageTableSize = numPages;
 }
+#endif

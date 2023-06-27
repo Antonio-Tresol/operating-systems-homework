@@ -982,23 +982,51 @@ void NachOS_Shutdown() {  // System call 25
   }
   NachOS_IncreasePC();
 }
+#ifdef VM
+enum PageFaultType {
+  HARD_FAULT_DIRTY,
+  HARD_FAULT_CLEAN,
+  SOFT_FAULT,
+  COPY_ON_WRITE_FAULT
+};
 int NachOS_PAGE_FAULT_HANDLER() {
-  // TODO implement page fault handler
   DEBUG('y', "Page fault handler\n");
-  // stats page fault++
-  // 1. Get the faulting virtual address
-  // 2. Check if the address is valid
-  // hay que identificar el tipo de page fault.
-  // ver page table process, que esta en el addrspace
-  // hard page fault:
-    // hay que revisar la entry que dio page fault
-    // hay que revisar si esa entry esta sucia --> esta en el swap
-    // si esta limpia --> esta en el executable
-  // Soft page fault:
-    // Soft page fault: la page table del proceso tiene la entry marcada como
-    // valida, pero no tiene mapeada la pagina en memoria fisica.
-    // tentativamente se deberia resolver con inverted page table
+  // 1. Get the faulting address
+  u_int32_t faultingAddress = machine->ReadRegister(BadVAddrReg);
+  // 2. Find the page number for the faulting address
+  u_int32_t pageNumber = faultingAddress / PageSize;
+  PageFaultType faultType;
+  u_int32_t numOfPages = currentThread->space->getNumPages();
+  // 3. Check if the page number is valid
+  if (pageNumber >= numOfPages) {
+    DEBUG('x', "Illegal page fault. Exiting.\n");
+    currentThread->Finish();
+    return -1;
+  }
+  TranslationEntry* pageTable = currentThread->space->getPageTable();
+  // 4. Check if it's a copy-on-write fault
+  if (pageTable[pageNumber].readOnly) {
+    faultType = COPY_ON_WRITE_FAULT;
+
+    /* 5. Check if it's a hard page fault*/
+  } else if (!pageTable[pageNumber].valid) {
+    // Check if the page is dirty
+    if (pageTable[pageNumber].dirty) {
+      // The page is in the swap. Load it from the swap space.
+      faultType = HARD_FAULT_DIRTY;
+    } else {  // The page is clean. Load it from the executable.
+      faultType = HARD_FAULT_CLEAN;
+    }
+  } else {  // 6. Otherwise, it's a soft page fault
+    // Page is valid but not in physical memory.
+    // Resolve using inverted page
+    // table
+    faultType = SOFT_FAULT;
+  }
+  (void)faultType;
+  return 0;
 }
+#endif
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
