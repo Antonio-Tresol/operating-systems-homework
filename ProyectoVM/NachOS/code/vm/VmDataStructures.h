@@ -6,6 +6,7 @@
 
 #include "bitmap.h"
 #include "system.h"
+#include "translate.h"
 class Swap {
  private:
   const int32_t SWAP_SIZE = NumPhysPages * 4;
@@ -49,5 +50,7 @@ class Swap {
 
   void Print();
 };
+
+class InvertedPageTable {}
 
 #endif
