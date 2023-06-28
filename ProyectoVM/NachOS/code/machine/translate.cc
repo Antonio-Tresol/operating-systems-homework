@@ -299,10 +299,18 @@ ExceptionType Machine::Translate(int virtAddr, int *physAddr, int size,
   }
   entry->use = true;  // set the use, dirty bits
   // Update the 'use' bit to indicate that this page has been accessed.
-  if (writing) entry->dirty = true;
+  if (writing) {
+    entry->dirty = true;
+#ifdef VM
+    SdMemController.updatePageDirty(pageFrame);
+#endif
+  }
   // If we're writing to the page, set the 'dirty' bit. This means that the page
   // has been modified and will need to be written back to disk.
   *physAddr = pageFrame * PageSize + offset;
+#ifdef VM
+  SdMemController.updatePageAccess(pageFrame);
+#endif
   // Calculate the physical address by multiplying the page frame by the page
   // size and adding the offset.
   ASSERT((*physAddr >= 0) && ((*physAddr + size) <= MemorySize));
