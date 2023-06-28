@@ -90,7 +90,7 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   size = codeSize + dataSize + uninitDataSize + UserStackSize;
   // Calculate the number of pages required by rounding up the size to the
   // nearest page boundary.
-  numPages = divRoundUp(size, PageSize);
+  this->numPages = divRoundUp(size, PageSize);
   // Recalculate the size in case it was rounded up to the nearest page
   // boundary.
   size = numPages * PageSize;
