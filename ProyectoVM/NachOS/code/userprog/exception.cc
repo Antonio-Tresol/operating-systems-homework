@@ -763,61 +763,61 @@ void NachOS_SemWait() {  // System call 14
   NachOS_IncreasePC();
 }
 
-/*
+/**
  *  System call interface: Lock_t LockCreate( int )
  */
 void NachOS_LockCreate() {  // System call 15
 }
 
-/*
+/**
  *  System call interface: int LockDestroy( Lock_t )
  */
 void NachOS_LockDestroy() {  // System call 16
 }
 
-/*
+/**
  *  System call interface: int LockAcquire( Lock_t )
  */
 void NachOS_LockAcquire() {  // System call 17
 }
 
-/*
+/**
  *  System call interface: int LockRelease( Lock_t )
  */
 void NachOS_LockRelease() {  // System call 18
 }
 
-/*
+/**
  *  System call interface: Cond_t LockCreate( int )
  */
 void NachOS_CondCreate() {  // System call 19
 }
 
-/*
+/**
  *  System call interface: int CondDestroy( Cond_t )
  */
 void NachOS_CondDestroy() {  // System call 20
 }
 
-/*
+/**
  *  System call interface: int CondSignal( Cond_t )
  */
 void NachOS_CondSignal() {  // System call 21
 }
 
-/*
+/**
  *  System call interface: int CondWait( Cond_t )
  */
 void NachOS_CondWait() {  // System call 22
 }
 
-/*
+/**
  *  System call interface: int CondBroadcast( Cond_t )
  */
 void NachOS_CondBroadcast() {  // System call 23
 }
 
-/*
+/**
  *  System call interface: Socket_t Socket( int, int, int)
  */
 void NachOS_Socket() {  // System call 30
@@ -876,7 +876,7 @@ void NachOS_Connect() {  // System call 31
   NachOS_IncreasePC();
 }
 
-/*
+/**
  *  System call interface: int Bind( Socket_t, int )
  */
 void NachOS_Bind() {  // System call 32
@@ -901,7 +901,7 @@ void NachOS_Bind() {  // System call 32
   NachOS_IncreasePC();
 }
 
-/*
+/**
  *  System call interface: int Listen( Socket_t, int )
  */
 void NachOS_Listen() {  // System call 33
@@ -926,7 +926,7 @@ void NachOS_Listen() {  // System call 33
   NachOS_IncreasePC();
 }
 
-/*
+/**
  *  System call interface: int Accept( Socket_t )
  */
 void NachOS_Accept() {  // System call 34
@@ -989,6 +989,7 @@ void NachOS_Shutdown() {  // System call 25
 #define COPY_ON_WRITE_FAULT 3
 
 int NachOS_PAGE_FAULT_HANDLER() {
+  stats->numPageFaults++;
   DEBUG('y', "Page fault handler\n");
   // 1. Get the faulting address
   u_int32_t faultingAddress = machine->ReadRegister(BadVAddrReg);
