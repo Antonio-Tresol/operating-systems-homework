@@ -46,6 +46,8 @@ class InvertedPageTable {
   int findFreeTLBEntry();
   // Updates the access information of a frame
   void updatePageAccess(int frameNumber);
+  // Updates the modified information of a frame
+  void updatePageDirty(int frameNumber);
   // Handles a page fault
   void handlePageFault(int virtualPage, addrSpaceId space, int faultType);
   // Evicts a page from memory
@@ -85,6 +87,9 @@ class InvertedPageTable {
   u_int32_t findLeastRecentlyUsed();
   u_int16_t findTLBLeastRecentlyUsed();
   int16_t findInTLB(int virtualPage, int frameNumber);
+  int invalidateInvPageTableEntry(int which);
+  int invalidateTLBEntry(int which);
+  int invalidatePageTableEntry(int virtualPage, addrSpaceId space);
 };
 
 using swapPageId = std::pair<addrSpaceId, int32_t>;

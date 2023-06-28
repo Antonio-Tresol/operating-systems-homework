@@ -32,15 +32,56 @@ InvertedPageTable::InvertedPageTable(Machine* machine, FileSystem* fileSystem) {
 InvertedPageTable::~InvertedPageTable() {
   // Cleanup code
 }
-
+int InvertedPageTable::invalidateInvPageTableEntry(int which) {
+  if (which < 0 || which >= static_cast<int>(IPT_SIZE)) {
+    return -1;
+  }
+  IPTEntry* evictedEntry = &this->invPageTable[which];
+  evictedEntry->valid = false;
+  evictedEntry->space = nullptr;
+  evictedEntry->virtualPage = -1;
+  evictedEntry->lastAccessCount = 0;
+  evictedEntry->dirty = false;
+  memBitMap->Clear(which);
+  return 0;
+}
+int InvertedPageTable::invalidateTLBEntry(int which) {
+  // get the position of the page in the TLB
+  if (which < 0 || which >= static_cast<int>(TLB_SIZE)) {
+    return -1;
+  }
+  this->TLB[which].valid = false;
+  this->TLB[which].dirty = false;
+  this->TLB[which].use = false;
+  this->TLB[which].readOnly = false;
+  this->TLB[which].virtualPage = -1;
+  this->TLB[which].physicalPage = -1;
+  // clear the tlb entry bit map
+  this->tlbBitMap->Clear(which);
+  return 0;
+}
+int InvertedPageTable::invalidatePageTableEntry(int virtualPage,
+                                                addrSpaceId space) {
+  TranslationEntry* pageTable = space->getPageTable();
+  if (virtualPage < 0 ||
+      virtualPage >= static_cast<int>(space->getNumPages())) {
+    return -1;
+  }
+  pageTable[virtualPage].valid = false;
+  pageTable[virtualPage].physicalPage = -1;
+  // TODO: check if we need to do anything else here
+  return 0;
+}
 int InvertedPageTable::findFreeFrame() {
   // 1. Search the memBitMap for a free frame
   // 2. If one is found, return its index
   // 3. If no free frame is found, evict one and return its index
   int freeFrame = memBitMap->Find();
-  // if no free frame is found, evict one and return its index
+  // if no free frame is found
   if (freeFrame == -1) {
+    // evict a page
     evictPage();
+    // find a free frame
     freeFrame = memBitMap->Find();
   }
   return freeFrame;
@@ -49,10 +90,12 @@ int InvertedPageTable::findFreeFrame() {
 int InvertedPageTable::findFreeTLBEntry() {
   // 1. Search the tlbBitMap for a free TLB entry
   // 2. If one is found, return its index
-  // 3. If no free TLB entry is found, evict one and return its index
   int freeTLBEntry = tlbBitMap->Find();
+  // 3. If no free TLB entry is found
   if (freeTLBEntry == -1) {
+    // evict one and return its index
     evictTLBEntry();
+    // find a free TLB entry
     freeTLBEntry = tlbBitMap->Find();
   }
   return freeTLBEntry;
@@ -64,7 +107,6 @@ void InvertedPageTable::updatePageAccess(int frameNumber) {
   // 3. Update the TLB entry
   invPageTable[frameNumber].lastAccessCount = simulatedGlobalTimer++;
 }
-
 void InvertedPageTable::handlePageFault(int virtualPage, addrSpaceId space,
                                         int faultType) {
   // 1. Determine the type of page fault
@@ -90,31 +132,20 @@ void InvertedPageTable::handlePageFault(int virtualPage, addrSpaceId space,
 void InvertedPageTable::evictPage() {
   // 1. Find the least recently used page with findLeastRecentlyUsed()
   int frameNumber = findLeastRecentlyUsed();
-
-  // 2. Remove this page from memory and update the page table
-  IPTEntry* evictedEntry = &invPageTable[frameNumber];
-  evictedEntry->valid = false;
-  evictedEntry->space = nullptr;
-  evictedEntry->virtualPage = -1;
-  evictedEntry->lastAccessCount = 0;
-  memBitMap->Clear(frameNumber);
+  // 2. Remove this page from memory and update the page table, TLB, and
+  // invPageTable
+  IPTEntry* evictedEntry = &this->invPageTable[frameNumber];
   if (evictedEntry->dirty) {
     // TODO: Write to swap before evicting
-    //  3.If the page is dirty, write it back to the swap file
-    (void)evictedEntry->dirty;
+    // If the page is dirty, write it back to the swap file
   }
-  // if the page is in the TLB, remove it from the TLB
+  // 2.1 if the page is in the TLB, remove it from the TLB
   if (evictedEntry->tlbLocation >= 0) {
-    // get the position of the page in the TLB
-    TLB[evictedEntry->tlbLocation].valid = false;
-    TLB[evictedEntry->tlbLocation].dirty = false;
-    TLB[evictedEntry->tlbLocation].use = false;
-    TLB[evictedEntry->tlbLocation].readOnly = false;
-    TLB[evictedEntry->tlbLocation].virtualPage = -1;
-    TLB[evictedEntry->tlbLocation].physicalPage = -1;
-    // clear the tlb entry bit map
-    tlbBitMap->Clear(evictedEntry->tlbLocation);
+    invalidateTLBEntry(evictedEntry->tlbLocation);
   }
+
+  // 3. clear the main memory on that frame
+  bzero(&memory[frameNumber * PageSize], PageSize);
 }
 
 void InvertedPageTable::evictTLBEntry() {
