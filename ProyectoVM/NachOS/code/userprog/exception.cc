@@ -983,19 +983,18 @@ void NachOS_Shutdown() {  // System call 25
   NachOS_IncreasePC();
 }
 #ifdef VM
-enum PageFaultType {
-  HARD_FAULT_DIRTY,
-  HARD_FAULT_CLEAN,
-  SOFT_FAULT,
-  COPY_ON_WRITE_FAULT
-};
+#define HARD_FAULT_DIRTY 0
+#define HARD_FAULT_CLEAN 1
+#define SOFT_FAULT 2
+#define COPY_ON_WRITE_FAULT 3
+
 int NachOS_PAGE_FAULT_HANDLER() {
   DEBUG('y', "Page fault handler\n");
   // 1. Get the faulting address
   u_int32_t faultingAddress = machine->ReadRegister(BadVAddrReg);
   // 2. Find the page number for the faulting address
   u_int32_t pageNumber = faultingAddress / PageSize;
-  PageFaultType faultType;
+  int faultType;
   u_int32_t numOfPages = currentThread->space->getNumPages();
   // 3. Check if the page number is valid
   if (pageNumber >= numOfPages) {
@@ -1007,9 +1006,8 @@ int NachOS_PAGE_FAULT_HANDLER() {
   // 4. Check if it's a copy-on-write fault
   if (pageTable[pageNumber].readOnly) {
     faultType = COPY_ON_WRITE_FAULT;
-
     /* 5. Check if it's a hard page fault*/
-  } else if (!pageTable[pageNumber].valid) {
+  } else if (pageTable[pageNumber].valid == false) {
     // Check if the page is dirty
     if (pageTable[pageNumber].dirty) {
       // The page is in the swap. Load it from the swap space.
@@ -1023,7 +1021,8 @@ int NachOS_PAGE_FAULT_HANDLER() {
     // table
     faultType = SOFT_FAULT;
   }
-  (void)faultType;
+  SdMemController->handlePageFault(pageNumber, currentThread->space.get(),
+                                   faultType);
   return 0;
 }
 #endif

@@ -50,7 +50,7 @@ class AddrSpace {
 #ifdef VM
   // to retrieve the executable file when we need to load a clean page
   void setExecutable(std::string filename);
-  std::string getExecutable();
+  std::string getExecutable() { return executableFilename; }
   TranslationEntry *getPageTable() { return pageTable; }
   u_int32_t getNumPages() { return numPages; }
 #endif

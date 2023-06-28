@@ -25,6 +25,7 @@ BitMap::BitMap(int nitems) {
   for (int i = 0; i < numBits; i++) {
     Clear(i);
   }
+  numBitsSet_ = 0;
 }
 
 //----------------------------------------------------------------------
@@ -56,6 +57,7 @@ void BitMap::Mark(int which) {
 void BitMap::Clear(int which) {
   ASSERT(which >= 0 && which < numBits);
   map[which / BitsInWord] &= ~(1 << (which % BitsInWord));
+  numBitsSet_--;
 }
 
 //----------------------------------------------------------------------
@@ -87,6 +89,7 @@ int BitMap::Find() {
   for (int i = 0; i < numBits; i++) {
     if (!Test(i)) {
       Mark(i);
+      numBitsSet_++;
       return i;
     }
   }
@@ -146,3 +149,5 @@ void BitMap::WriteBack(OpenFile *file) {
   file->WriteAt((char *)map, numWords * sizeof(unsigned), 0);
 }
 int BitMap::getNumBits() { return numBits; };
+
+int BitMap::getNumBitsSet() { return numBitsSet_; };

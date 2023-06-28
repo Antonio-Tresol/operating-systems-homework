@@ -52,7 +52,7 @@ class BitMap {
   void FetchFrom(OpenFile *file);  // fetch contents from disk
   void WriteBack(OpenFile *file);  // write contents to disk
   int getNumBits();                // Return the number of bits
-
+  int getNumBitsSet();             // Return the number of bits set
  private:
   int numBits;        // number of bits in the bitmap
   int numWords;       // number of words of bitmap storage
@@ -60,6 +60,7 @@ class BitMap {
                       //  multiple of the number of bits in
                       //  a word)
   unsigned int *map;  // bit storage
+  int numBitsSet_;    // number of bits set
 };
 
 #endif  // BITMAP_H

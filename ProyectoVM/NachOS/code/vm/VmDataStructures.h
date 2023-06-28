@@ -8,37 +8,50 @@
 
 #include "addrspace.h"
 #include "bitmap.h"
+#include "filesys.h"
 #include "machine.h"
-#include "system.h"
 #include "translate.h"
+#define HARD_FAULT_DIRTY 0
+#define HARD_FAULT_CLEAN 1
+#define SOFT_FAULT 2
+#define COPY_ON_WRITE_FAULT 3
 // address space id
 using addrSpaceId = AddrSpace*;
 struct IPTEntry {
-  int32_t virtualPage;            // The virtual page number.
-  addrSpaceId space;              // The address space that owns this page.
-  u_int64_t lastAccessCount;      // to count the last access
-  bool valid;                     // to know if the page is accessable
-  TranslationEntry* tlbLocation;  // to know if and where the page is in the TLB
+  int32_t physicalPage;       // The physical page number.It will be always
+                              // equal to the index of the IPTEntry
+  int32_t virtualPage;        // The virtual page number.
+  addrSpaceId space;          // The address space that owns this page.
+  u_int64_t lastAccessCount;  // to count the last access
+  bool valid;                 // to know if the page is accessable
+  bool dirty;                 // to know if the page has been modified
+  int tlbLocation;            // to know if and where the page is in the TLB
   IPTEntry() {
+    physicalPage = -1;
     virtualPage = -1;
     space = nullptr;
-    lassAccessCount = 0;
+    lastAccessCount = 0;
     valid = false;
-    tlbLocation = nullptr;
+    dirty = false;
+    tlbLocation = -1;
   }
 };
 class InvertedPageTable {
  public:
-  InvertedPageTable();
+  InvertedPageTable(Machine* machine, FileSystem* fileSystem);
   ~InvertedPageTable();
   // Returns the index of a free frame
   int findFreeFrame();
+  // Returns the index of a free TLB entry
+  int findFreeTLBEntry();
   // Updates the access information of a frame
   void updatePageAccess(int frameNumber);
   // Handles a page fault
   void handlePageFault(int virtualPage, addrSpaceId space, int faultType);
   // Evicts a page from memory
   void evictPage();
+  // evicts a entry from the TLB
+  void evictTLBEntry();
   // Returns the IPTEntry of a page
   IPTEntry* findPage(int virtualPage, addrSpaceId space);
   // Returns the IPTEntry of a page
@@ -60,14 +73,18 @@ class InvertedPageTable {
   // a simulated clock to control the last access
   u_int64_t simulatedGlobalTimer;
   // a pointer to the tlb of the machine
-  TranslationEntry* TLB = machine->tlb;
+  TranslationEntry* TLB;
+  char* memory;
+  FileSystem* fs;
   // to control de number of physical frames assigned
   std::unique_ptr<BitMap> memBitMap;
+  std::unique_ptr<BitMap> tlbBitMap;
   // the idea here is that the IPTEntry on index i is the info about the vpage
   // that is currently the physical frame i
   std::array<IPTEntry, 128> invPageTable;
   u_int32_t findLeastRecentlyUsed();
   u_int16_t findTLBLeastRecentlyUsed();
+  int16_t findInTLB(int virtualPage, int frameNumber);
 };
 
 using swapPageId = std::pair<addrSpaceId, int32_t>;

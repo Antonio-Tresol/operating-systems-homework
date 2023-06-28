@@ -42,6 +42,8 @@ extern std::unique_ptr<BitMap> memBitMap;
 extern std::unique_ptr<SysSocketTable> sysSocketTable;
 #endif
 #ifdef VM
+#include "VmDataStructures.h"
+extern std::unique_ptr<InvertedPageTable> SdMemController;
 #endif
 #ifdef FILESYS_NEEDED  // FILESYS or FILESYS_STUB
 #include "filesys.h"

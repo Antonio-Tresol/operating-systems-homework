@@ -103,7 +103,7 @@ USERPROG_C = ../userprog/addrspace.cc\
 	../vm/VmDataStructures.cc
 
 USERPROG_O = addrspace.o bitmap.o exception.o progtest.o console.o machine.o \
-	mipssim.o translate.o table.o
+	mipssim.o translate.o table.o VmDataStructures.o
 
 VM_H =
 VM_C =
