@@ -49,7 +49,8 @@ class InvertedPageTable {
   // Updates the modified information of a frame
   void updatePageDirty(int frameNumber);
   // Handles a page fault
-  void handlePageFault(int virtualPage, addrSpaceId space, int faultType);
+  void handlePageFault(int address, int virtualPage, addrSpaceId space,
+                       int faultType);
   // Evicts a page from memory
   void evictPage();
   // evicts a entry from the TLB
@@ -65,7 +66,8 @@ class InvertedPageTable {
   // context switch (validates the TLB entries and the IPT entries)
   int restoreProcessPages(addrSpaceId space);
   // loads a page from the executable to memory
-  int loadFromExecutableToMemory(int virtualPage, addrSpaceId space);
+  int loadFromExecutableToMemory(int address, int virtualPage,
+                                 addrSpaceId space);
   // loads a page from the swap file to memory
   int loadFromSwapToMemory(int virtualPage, addrSpaceId space);
 
@@ -90,6 +92,8 @@ class InvertedPageTable {
   int invalidateInvPageTableEntry(int which);
   int invalidateTLBEntry(int which);
   int invalidatePageTableEntry(int virtualPage, addrSpaceId space);
+  int loadPageToMemory(int address, int virtualPage, addrSpaceId space,
+                       int frameNumber);
 };
 
 using swapPageId = std::pair<addrSpaceId, int32_t>;

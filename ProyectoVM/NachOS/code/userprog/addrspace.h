@@ -49,7 +49,7 @@ class AddrSpace {
   void RestoreState();  // info on a context switch
 #ifdef VM
   // to retrieve the executable file when we need to load a clean page
-  void setExecutable(std::string filename);
+  void setExecutable(std::string filename) { executableFilename = filename; }
   std::string getExecutable() { return executableFilename; }
   TranslationEntry *getPageTable() { return pageTable; }
   u_int32_t getNumPages() { return numPages; }

@@ -1022,8 +1022,9 @@ int NachOS_PAGE_FAULT_HANDLER() {
     // table
     faultType = SOFT_FAULT;
   }
-  SdMemController->handlePageFault(pageNumber, currentThread->space.get(),
-                                   faultType);
+  int vpn = pageTable[pageNumber].virtualPage;
+  SdMemController->handlePageFault(faultingAddress, vpn,
+                                   currentThread->space.get(), faultType);
   return 0;
 }
 #endif

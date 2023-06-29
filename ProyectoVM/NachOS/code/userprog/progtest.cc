@@ -13,6 +13,9 @@
 #include "copyright.h"
 #include "synch.h"
 #include "system.h"
+#ifdef VM
+#include <string>
+#endif
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -42,7 +45,11 @@ void StartProcess(const char *filename) {
   DEBUG('x', "Thread %s with id %d is created\n", currentThread->getName(),
         currentThread->getThreadId());
   delete executable;  // close file
-
+#ifdef VM
+  // set the executable filename for the address space
+  std::string executableFilename(filename);
+  currentThread->space->setExecutable(executableFilename);
+#endif
   currentThread->space->InitRegisters();  // set the initial register values
   currentThread->space->RestoreState();   // load page table register
   DEBUG('x', "Thread main with id %d is running\n",

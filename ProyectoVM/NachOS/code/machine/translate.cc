@@ -227,13 +227,13 @@ ExceptionType Machine::Translate(int virtAddr, int *physAddr, int size,
                                  bool writing) {
   // This function translates a given virtual address to a physical address. It
   // also performs several checks for errors and exceptions.
-  int i;  // This will be used in the loop over the TLB entries.
-  unsigned int vpn, offset;  // These will store the virtual page number and
-                             // offset within the page.
-  TranslationEntry *entry;   // This will point to the translation entry either
-                             // from page table or TLB.
-  unsigned int pageFrame;    // This will store the physical page frame number.
-                           // Debug message about the address being translated.
+  int i = 0;  // This will be used in the loop over the TLB entries.
+  unsigned int vpn = 0, offset = 0;  // These will store the virtual page number
+                                     // and offset within the page.
+  TranslationEntry *entry;  // This will point to the translation entry either
+                            // from page table or TLB.
+  unsigned int pageFrame;   // This will store the physical page frame number.
+                            // Debug message about the address being translated.
   DEBUG('a', "\tTranslate 0x%x, %s: ", virtAddr, writing ? "write" : "read");
   // check for alignment errors
   if (((size == 4) && (virtAddr & 0x3)) || ((size == 2) && (virtAddr & 0x1))) {
@@ -302,14 +302,14 @@ ExceptionType Machine::Translate(int virtAddr, int *physAddr, int size,
   if (writing) {
     entry->dirty = true;
 #ifdef VM
-    SdMemController.updatePageDirty(pageFrame);
+    SdMemController->updatePageDirty(pageFrame);
 #endif
   }
   // If we're writing to the page, set the 'dirty' bit. This means that the page
   // has been modified and will need to be written back to disk.
   *physAddr = pageFrame * PageSize + offset;
 #ifdef VM
-  SdMemController.updatePageAccess(pageFrame);
+  SdMemController->updatePageAccess(pageFrame);
 #endif
   // Calculate the physical address by multiplying the page frame by the page
   // size and adding the offset.

@@ -105,15 +105,27 @@ void InvertedPageTable::updatePageAccess(int frameNumber) {
   // 1. Locate the frameNumber in the invPageTable
   // 2. Update the lastAccessCount
   // 3. Update the TLB entry
+  if (frameNumber < 0 || frameNumber >= static_cast<int>(IPT_SIZE)) {
+    return;
+  }
   invPageTable[frameNumber].lastAccessCount = simulatedGlobalTimer++;
 }
-void InvertedPageTable::handlePageFault(int virtualPage, addrSpaceId space,
-                                        int faultType) {
+
+void InvertedPageTable::updatePageDirty(int frameNumber) {
+  // 1. Locate the frameNumber in the invPageTable
+  // 2. Update the dirty bit
+  if (frameNumber < 0 || frameNumber >= static_cast<int>(IPT_SIZE)) {
+    return;
+  }
+  invPageTable[frameNumber].dirty = true;
+}
+void InvertedPageTable::handlePageFault(int address, int virtualPage,
+                                        addrSpaceId space, int faultType) {
   // 1. Determine the type of page fault
   // 2. Call the appropriate method to handle it
   switch (faultType) {
     case HARD_FAULT_CLEAN:
-      loadFromExecutableToMemory(virtualPage, space);
+      loadFromExecutableToMemory(address, virtualPage, space);
       break;
     case HARD_FAULT_DIRTY:
       // loadFromSwapToMemory(virtualPage, space); // for now
@@ -143,7 +155,7 @@ void InvertedPageTable::evictPage() {
   if (evictedEntry->tlbLocation >= 0) {
     invalidateTLBEntry(evictedEntry->tlbLocation);
   }
-
+  invalidateInvPageTableEntry(frameNumber);
   // 3. clear the main memory on that frame
   bzero(&memory[frameNumber * PageSize], PageSize);
 }
@@ -153,14 +165,7 @@ void InvertedPageTable::evictTLBEntry() {
   int frameNumber = findTLBLeastRecentlyUsed();
   int tlbEntry = invPageTable[frameNumber].tlbLocation;
   // 2. Remove this entry from the TLB and update the page table
-  TLB[tlbEntry].valid = false;
-  TLB[tlbEntry].dirty = false;
-  TLB[tlbEntry].use = false;
-  TLB[tlbEntry].readOnly = false;
-  TLB[tlbEntry].virtualPage = -1;
-  TLB[tlbEntry].physicalPage = -1;
-  // clear the tlb entry bit map
-  tlbBitMap->Clear(tlbEntry);
+  invalidateTLBEntry(tlbEntry);
 }
 
 IPTEntry* InvertedPageTable::findPage(int virtualPage, addrSpaceId space) {
@@ -185,30 +190,51 @@ bool InvertedPageTable::isValid(int virtualPage, addrSpaceId space) {
   }
   return false;
 }
-
-int InvertedPageTable::loadFromExecutableToMemory(int virtualPage,
-                                                  addrSpaceId space) {
-  // Get the NOFF header from the executable file
+int InvertedPageTable::loadPageToMemory(int address, int virtualPage,
+                                        addrSpaceId space, int frameNumber) {
   NoffHeader noffH;
-  OpenFile* executable = fs->Open(space->getExecutable().c_str());
+  std::string executableName = space->getExecutable();
+  OpenFile* executable = fs->Open(executableName.c_str());
+
   executable->ReadAt((char*)&noffH, sizeof(noffH), 0);
+
   if ((noffH.noffMagic != NOFFMAGIC) &&
       (WordToHost(noffH.noffMagic) == NOFFMAGIC))
     swapHeader(&noffH);
   ASSERT(noffH.noffMagic == NOFFMAGIC);
 
   // Calculate the starting position of the page in the file
-  int start = noffH.code.inFileAddr + virtualPage * PageSize;
+  int position = noffH.code.inFileAddr + virtualPage * PageSize;
+  int executableSize =
+      noffH.code.size + noffH.initData.size + noffH.uninitData.size;
+  int sizeToWrite = PageSize;
+  // check if stack
+  if (address >= noffH.code.inFileAddr + noffH.code.size + noffH.initData.size +
+                     noffH.uninitData.size) {
+    // if so do not read
+    return -1;
+  }
 
-  // Find a free frame in memory
-  int freeFrame = findFreeFrame();
+  if (virtualPage == (int)space->getNumPages() - 1 &&
+      executableSize % PageSize != 0) {
+    // If the last page is not full, we need to read the remaining bytes
+    sizeToWrite = executableSize % PageSize;
+  }
   // Load the page into the frame
-  int readBytes =
-      executable->ReadAt(&(memory[PageSize * freeFrame]), PageSize, start);
+  int readBytes = executable->ReadAt(&(memory[PageSize * frameNumber]),
+                                     sizeToWrite, position);
   if (readBytes <= 0) {
     // handle the error
     return -1;
   }
+  return readBytes;
+}
+int InvertedPageTable::loadFromExecutableToMemory(int address, int virtualPage,
+                                                  addrSpaceId space) {
+  // Get the NOFF header from the executable file
+  // Find a free frame in memory
+  int freeFrame = findFreeFrame();
+  loadPageToMemory(address, virtualPage, space, freeFrame);
   // Update the inverted page table (just the valid bit and the virtual page)
   invPageTable[freeFrame].virtualPage = virtualPage;
   invPageTable[freeFrame].valid = true;
