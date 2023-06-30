@@ -72,8 +72,8 @@ class InvertedPageTable {
   int loadFromSwapToMemory(int virtualPage, addrSpaceId space);
 
  private:
-  const u_int32_t IPT_SIZE = 128;  // the number of physical frames
-  const u_int16_t TLB_SIZE = 4;    // the number of entries in the TLB
+  const u_int32_t IPT_SIZE = 32;  // the number of physical frames
+  const u_int16_t TLB_SIZE = 4;   // the number of entries in the TLB
   // a simulated clock to control the last access
   u_int64_t simulatedGlobalTimer;
   // a pointer to the tlb of the machine
