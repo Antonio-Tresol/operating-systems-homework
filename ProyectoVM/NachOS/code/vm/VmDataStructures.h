@@ -36,10 +36,10 @@ struct IPTEntry {
     tlbLocation = -1;
   }
 };
-class InvertedPageTable {
+class MemoryManagementUnit {
  public:
-  InvertedPageTable(Machine* machine, FileSystem* fileSystem);
-  ~InvertedPageTable();
+  MemoryManagementUnit(Machine* machine, FileSystem* fileSystem);
+  ~MemoryManagementUnit();
   // Returns the index of a free frame
   int findFreeFrame();
   // Returns the index of a free TLB entry

@@ -41,7 +41,7 @@ std::unique_ptr<BitMap> memBitMap;
 std::unique_ptr<SysSocketTable> sysSocketTable;
 #endif
 #ifdef VM
-std::unique_ptr<InvertedPageTable> SdMemController;
+std::unique_ptr<MemoryManagementUnit> SdMemController;
 #endif
 #ifdef NETWORK
 PostOffice *postOffice;
@@ -189,7 +189,7 @@ void Initialize(int argc, char **argv) {
 #endif
 #ifdef VM
   SdMemController =
-      std::make_unique<InvertedPageTable>(machine.get(), fileSystem);
+      std::make_unique<MemoryManagementUnit>(machine.get(), fileSystem);
 #endif
 #ifdef NETWORK
   postOffice = new PostOffice(netname, rely, 10);

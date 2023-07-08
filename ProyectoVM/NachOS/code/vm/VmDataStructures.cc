@@ -15,7 +15,7 @@ static void swapHeader(NoffHeader* noffH) {
   noffH->uninitData.inFileAddr = WordToHost(noffH->uninitData.inFileAddr);
 }
 
-InvertedPageTable::InvertedPageTable(Machine* machine, FileSystem* fileSystem) {
+MemoryManagementUnit::MemoryManagementUnit(Machine* machine, FileSystem* fileSystem) {
   // Initialization code
   memBitMap = std::make_unique<BitMap>(IPT_SIZE);
   tlbBitMap = std::make_unique<BitMap>(TLB_SIZE);
@@ -29,10 +29,10 @@ InvertedPageTable::InvertedPageTable(Machine* machine, FileSystem* fileSystem) {
   fs = fileSystem;
 }
 
-InvertedPageTable::~InvertedPageTable() {
+MemoryManagementUnit::~MemoryManagementUnit() {
   // Cleanup code
 }
-int InvertedPageTable::invalidateInvPageTableEntry(int which) {
+int MemoryManagementUnit::invalidateInvPageTableEntry(int which) {
   if (which < 0 || which >= static_cast<int>(IPT_SIZE)) {
     return -1;
   }
@@ -45,7 +45,7 @@ int InvertedPageTable::invalidateInvPageTableEntry(int which) {
   memBitMap->Clear(which);
   return 0;
 }
-int InvertedPageTable::invalidateTLBEntry(int which) {
+int MemoryManagementUnit::invalidateTLBEntry(int which) {
   // get the position of the page in the TLB
   if (which < 0 || which >= static_cast<int>(TLB_SIZE)) {
     return -1;
@@ -60,7 +60,7 @@ int InvertedPageTable::invalidateTLBEntry(int which) {
   this->tlbBitMap->Clear(which);
   return 0;
 }
-int InvertedPageTable::invalidatePageTableEntry(int virtualPage,
+int MemoryManagementUnit::invalidatePageTableEntry(int virtualPage,
                                                 addrSpaceId space) {
   TranslationEntry* pageTable = space->getPageTable();
   if (virtualPage < 0 ||
@@ -72,7 +72,7 @@ int InvertedPageTable::invalidatePageTableEntry(int virtualPage,
   // TODO: check if we need to do anything else here
   return 0;
 }
-int InvertedPageTable::findFreeFrame() {
+int MemoryManagementUnit::findFreeFrame() {
   // 1. Search the memBitMap for a free frame
   // 2. If one is found, return its index
   // 3. If no free frame is found, evict one and return its index
@@ -87,7 +87,7 @@ int InvertedPageTable::findFreeFrame() {
   return freeFrame;
 }
 
-int InvertedPageTable::findFreeTLBEntry() {
+int MemoryManagementUnit::findFreeTLBEntry() {
   // 1. Search the tlbBitMap for a free TLB entry
   // 2. If one is found, return its index
   int freeTLBEntry = tlbBitMap->Find();
@@ -101,7 +101,7 @@ int InvertedPageTable::findFreeTLBEntry() {
   return freeTLBEntry;
 }
 
-void InvertedPageTable::updatePageAccess(int frameNumber) {
+void MemoryManagementUnit::updatePageAccess(int frameNumber) {
   // 1. Locate the frameNumber in the invPageTable
   // 2. Update the lastAccessCount
   // 3. Update the TLB entry
@@ -111,7 +111,7 @@ void InvertedPageTable::updatePageAccess(int frameNumber) {
   invPageTable[frameNumber].lastAccessCount = simulatedGlobalTimer++;
 }
 
-void InvertedPageTable::updatePageDirty(int frameNumber) {
+void MemoryManagementUnit::updatePageDirty(int frameNumber) {
   // 1. Locate the frameNumber in the invPageTable
   // 2. Update the dirty bit
   if (frameNumber < 0 || frameNumber >= static_cast<int>(IPT_SIZE)) {
@@ -119,7 +119,7 @@ void InvertedPageTable::updatePageDirty(int frameNumber) {
   }
   invPageTable[frameNumber].dirty = true;
 }
-void InvertedPageTable::handlePageFault(int address, int virtualPage,
+void MemoryManagementUnit::handlePageFault(int address, int virtualPage,
                                         addrSpaceId space, int faultType) {
   // 1. Determine the type of page fault
   // 2. Call the appropriate method to handle it
@@ -141,7 +141,7 @@ void InvertedPageTable::handlePageFault(int address, int virtualPage,
   }
 }
 
-void InvertedPageTable::evictPage() {
+void MemoryManagementUnit::evictPage() {
   // 1. Find the least recently used page with findLeastRecentlyUsed()
   int frameNumber = findLeastRecentlyUsed();
   // 2. Remove this page from memory and update the page table, TLB, and
@@ -160,7 +160,7 @@ void InvertedPageTable::evictPage() {
   bzero(&memory[frameNumber * PageSize], PageSize);
 }
 
-void InvertedPageTable::evictTLBEntry() {
+void MemoryManagementUnit::evictTLBEntry() {
   // 1. Find the least recently used TLB entry with findTLBLeastRecentlyUsed()
   int frameNumber = findTLBLeastRecentlyUsed();
   int tlbEntry = invPageTable[frameNumber].tlbLocation;
@@ -168,7 +168,7 @@ void InvertedPageTable::evictTLBEntry() {
   invalidateTLBEntry(tlbEntry);
 }
 
-IPTEntry* InvertedPageTable::findPage(int virtualPage, addrSpaceId space) {
+IPTEntry* MemoryManagementUnit::findPage(int virtualPage, addrSpaceId space) {
   // 1. Loop through the invPageTable to find the page
   // 2. If found, return a pointer to the IPTEntry
   // 3. If not found, return nullptr
@@ -180,7 +180,7 @@ IPTEntry* InvertedPageTable::findPage(int virtualPage, addrSpaceId space) {
   return nullptr;
 }
 
-bool InvertedPageTable::isValid(int virtualPage, addrSpaceId space) {
+bool MemoryManagementUnit::isValid(int virtualPage, addrSpaceId space) {
   // 1. Try to find the page with findPage()
   // 2. If the page is found, check its validity
   // 3. Return the result
@@ -190,7 +190,7 @@ bool InvertedPageTable::isValid(int virtualPage, addrSpaceId space) {
   }
   return false;
 }
-int InvertedPageTable::loadPageToMemory(int address, int virtualPage,
+int MemoryManagementUnit::loadPageToMemory(int address, int virtualPage,
                                         addrSpaceId space, int frameNumber) {
   NoffHeader noffH;
   std::string executableName = space->getExecutable();
@@ -229,7 +229,7 @@ int InvertedPageTable::loadPageToMemory(int address, int virtualPage,
   }
   return readBytes;
 }
-int InvertedPageTable::loadFromExecutableToMemory(int address, int virtualPage,
+int MemoryManagementUnit::loadFromExecutableToMemory(int address, int virtualPage,
                                                   addrSpaceId space) {
   // Get the NOFF header from the executable file
   // Find a free frame in memory
@@ -255,7 +255,7 @@ int InvertedPageTable::loadFromExecutableToMemory(int address, int virtualPage,
   return freeFrame;
 }
 
-int InvertedPageTable::loadFromSwapToMemory(int virtualPage,
+int MemoryManagementUnit::loadFromSwapToMemory(int virtualPage,
                                             addrSpaceId space) {
   // 1. Locate the page in the swap file
   // 2. Load the page into a free frame in memory
@@ -263,7 +263,7 @@ int InvertedPageTable::loadFromSwapToMemory(int virtualPage,
   return 0;
 }
 
-u_int32_t InvertedPageTable::findLeastRecentlyUsed() {
+u_int32_t MemoryManagementUnit::findLeastRecentlyUsed() {
   // 1. Loop through the invPageTable
   // 2. Keep track of the page with the smallest lastAccessCount
   // 3. Return the index of this page
@@ -278,7 +278,7 @@ u_int32_t InvertedPageTable::findLeastRecentlyUsed() {
   return minLastAccessCountIndex;
 }
 
-u_int16_t InvertedPageTable::findTLBLeastRecentlyUsed() {
+u_int16_t MemoryManagementUnit::findTLBLeastRecentlyUsed() {
   // Similar to findLeastRecentlyUsed(), but with the TLB instead of the page
   // table
   uint64_t minLastAccessCount = 0;
@@ -288,8 +288,12 @@ u_int16_t InvertedPageTable::findTLBLeastRecentlyUsed() {
   // Find all IPTEntrys on TLB
   for (u_int32_t i = 0; i < IPT_SIZE; i++) {
     if (invPageTable[i].tlbLocation) {
-      IPTEntrysOnTLB[IPTEntrysOnTLBIndex] = &invPageTable[i];
-      IPTEntrysOnTLBIndex++;
+        if (IPTEntrysOnTLBIndex >= IPTEntrysOnTLB.size()) {
+            // handle the error, e.g., stop the loop, throw an exception, etc.
+            break;
+        }
+        IPTEntrysOnTLB[IPTEntrysOnTLBIndex] = &invPageTable[i];
+        IPTEntrysOnTLBIndex++;
     }
   }
   // Find minLastAccessCount
@@ -305,7 +309,7 @@ u_int16_t InvertedPageTable::findTLBLeastRecentlyUsed() {
   return IPTEntrysOnTLB[minLastAccessCountIndex]->physicalPage;
 }
 
-int16_t InvertedPageTable::findInTLB(int virtualPage, int frameNumber) {
+int16_t MemoryManagementUnit::findInTLB(int virtualPage, int frameNumber) {
   for (int i = 0; i < TLB_SIZE; i++) {
     if (TLB[i].valid && TLB[i].virtualPage == virtualPage &&
         TLB[i].physicalPage == frameNumber) {

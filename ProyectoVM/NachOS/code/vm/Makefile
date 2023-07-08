@@ -5614,7 +5614,7 @@ VmDataStructures.o: ../vm/VmDataStructures.cc /usr/include/stdc-predef.h \
  /usr/include/string.h /usr/include/strings.h ../userprog/table.h \
  ../userprog/bitmap.h ../filesys/openfile.h ../machine/translate.h \
  ../userprog/bitmap.h ../machine/machine.h ../machine/disk.h \
- ../machine/translate.h
+ ../machine/translate.h ../bin/noff.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above
