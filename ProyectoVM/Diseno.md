@@ -93,7 +93,8 @@ se encarga de abrir el ejecutable del proceso generando page faults para cargar 
 
 se encarga de abrir el archivo de intercambio del proceso generando page faults para cargar las paginas del proceso en memoria.
 
-
+Además se implementan funciónes para imprimir el estado de los frames de memoria física, de la TLB y de la tabla de páginas invertida.
+Actualmente estas funciones no se usan en el código, pero pueden ser útiles para debuggear. (por ejemplo, en función handlePageFault estan pero se encuentran comentadas)
 ### Swap
 
 La clase `Swap` implementa las siguientes funciones:
@@ -104,7 +105,7 @@ La clase `Swap` implementa las siguientes funciones:
 
 ## Uso del Código
 
-Para compilar el código, use su compilador C++ de elección. Tenga en cuenta que el código es dependiente de las bibliotecas Nachos y, por lo tanto, debe estar instalado y correctamente configurado en su entorno. Para compilar haga:
+Para compilar el código, use su compilador C++ de elección. En carpeta vm dentro de la carpeta code, ejecute los siguientes comandos:
 
 ```
 make depend
@@ -115,7 +116,7 @@ Una vez compilado el código, puede ejecutar su simulador Nachos con soporte par
 
 ## No implementado
 
-Por que no pude encontrar el tiempo y apesar de que lo intente no pude implementar el todo manejo de la memoria virtual. Actualmente solo funciona el test halt.
+Aunque el codigo esta implementado. Actualmente solo funciona el test halt. Esto porque no encontré suficiente tiempo para 
 
 ## Referencias
 

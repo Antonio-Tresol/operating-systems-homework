@@ -238,7 +238,7 @@ void MemoryManagementUnit::handlePageFault(int address, int virtualPage,
                                            addrSpaceId space, int faultType) {
   // 1. Determine the type of page fault
   pageFaults++;
-  printInfoBeforePageFault(address, virtualPage, space, faultType);
+  /*printInfoBeforePageFault(address, virtualPage, space, faultType);*/
   // 2. Call the appropriate method to handle it
   switch (faultType) {
     case HARD_FAULT_CLEAN:
@@ -256,7 +256,7 @@ void MemoryManagementUnit::handlePageFault(int address, int virtualPage,
     default:
       break;
   }
-  printInfoAfterPageFault(address, virtualPage, space, faultType);
+  /*printInfoAfterPageFault(address, virtualPage, space, faultType);*/
 }
 
 void MemoryManagementUnit::evictPage() {
