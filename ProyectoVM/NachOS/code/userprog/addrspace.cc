@@ -118,6 +118,8 @@ AddrSpace::AddrSpace(OpenFile *executable) {
   }
 }
 AddrSpace::AddrSpace(AddrSpace *parentAdrSpace) {
+  executableFilename = parentAdrSpace->getExecutable();
+  parentId = parentAdrSpace;
   // Copy number of pages and the open files table from parent address space.
   this->numPages = parentAdrSpace->numPages;
   // The location of the page in the physical memory.
@@ -359,12 +361,15 @@ void AddrSpace::InitRegisters() {
 //
 //	For now, nothing!
 //----------------------------------------------------------------------
-
+#ifdef VM
+void AddrSpace::SaveState() { SdMemController->protectProcessPages(this); }
+#else
 void AddrSpace::SaveState() {
   // guardar las paginas sucias en swap
   // hay que hacerle invalidas todas las entradas la table lookaside buffer
   // also we need to make sure that
 }
+#endif
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState
@@ -374,11 +379,7 @@ void AddrSpace::SaveState() {
 //      For now, tell the machine where to find the page table.
 //----------------------------------------------------------------------
 #ifdef VM
-void AddrSpace::RestoreState() {
-  // TODO: restore state
-  // restoring the pages of the process using the inverted page table
-  // the protect pages using inverted page table
-}
+void AddrSpace::RestoreState() { SdMemController->restoreProcessPages(this); }
 #else
 void AddrSpace::RestoreState() {
   machine->pageTable = pageTable;

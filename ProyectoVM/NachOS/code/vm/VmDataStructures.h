@@ -16,6 +16,7 @@
 #define SOFT_FAULT 2
 #define COPY_ON_WRITE_FAULT 3
 // address space id
+class Swap;
 using addrSpaceId = AddrSpace*;
 struct IPTEntry {
   int32_t physicalPage;       // The physical page number.It will be always
@@ -70,8 +71,18 @@ class MemoryManagementUnit {
                                  addrSpaceId space);
   // loads a page from the swap file to memory
   int loadFromSwapToMemory(int virtualPage, addrSpaceId space);
+  int writePageToSwap(int virtualPage, addrSpaceId space);
+  /**
+   * @brief when a soft page fault occurs, the page is in memory but not in the
+   * TLB so we need to reload the TLB with the valid entry
+   * @param address - the address of the page
+   * @param virtualPage - the virtual page number
+   * @param space - the address space of the page
+   */
+  int reloadTLBwithValidEntry(int address, int virtualPage, addrSpaceId space);
 
  private:
+  int pageFaults{0};
   const u_int32_t IPT_SIZE = 32;  // the number of physical frames
   const u_int16_t TLB_SIZE = 4;   // the number of entries in the TLB
   // a simulated clock to control the last access
@@ -86,6 +97,7 @@ class MemoryManagementUnit {
   // the idea here is that the IPTEntry on index i is the info about the vpage
   // that is currently the physical frame i
   std::array<IPTEntry, 128> invPageTable;
+  std::unique_ptr<Swap> swap;
   u_int32_t findLeastRecentlyUsed();
   u_int16_t findTLBLeastRecentlyUsed();
   int16_t findInTLB(int virtualPage, int frameNumber);
@@ -94,21 +106,45 @@ class MemoryManagementUnit {
   int invalidatePageTableEntry(int virtualPage, addrSpaceId space);
   int loadPageToMemory(int address, int virtualPage, addrSpaceId space,
                        int frameNumber);
+  void tlbSnapshot();
+  void iptSnapshot();
+  void memSnapshot();
+  void printInfoBeforePageFault(int address, int virtualPage, addrSpaceId space,
+                                int faultType);
+  void printInfoAfterPageFault(int address, int virtualPage, addrSpaceId space,
+                               int faultType);
 };
 
-using swapPageId = std::pair<addrSpaceId, int32_t>;
+struct swapPageId {
+  addrSpaceId id;
+  int virtualPage;
+  swapPageId() {
+    id = nullptr;
+    virtualPage = -1;
+  }
+  swapPageId(addrSpaceId newId, int vpn) {
+    this->id = newId;
+    this->virtualPage = vpn;
+  }
+  void operator=(const swapPageId& other) {
+    id = other.id;
+    virtualPage = other.virtualPage;
+  }
+};
+
 class Swap {
  private:
-  const int32_t SWAP_SIZE = NumPhysPages * 4;
+  const int32_t SWAP_SIZE = NumPhysPages * 2000;
   const int32_t SWAP_PAGE_SIZE = 128;
   std::unique_ptr<BitMap> swapMap;
-  std::unique_ptr<OpenFile> swapFile;
-  // where the key is the address space* and the value is the virtual page
-  // number and the the swap page number
-  std::map<swapPageId, int32_t> swapTable;
+  OpenFile* swapFile;
+  // if array has a valid pair, the page is in the swap file
+  std::array<swapPageId, 128> swapTable;
+  FileSystem* fs;
+  char* mainMemory;
 
  public:
-  Swap();
+  Swap(FileSystem* fs, char* machine);
   ~Swap();
   /**
    * @brief Writes a page to the swap file.

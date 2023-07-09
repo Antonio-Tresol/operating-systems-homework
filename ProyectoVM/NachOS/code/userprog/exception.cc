@@ -202,6 +202,9 @@ void ExecuteThread(void* dummy) {  // for 64 bits version
   DEBUG('x', "File opened\n");
   // Create a new address space
   AddrSpace* space = new AddrSpace(executable);
+#ifdef VM
+  space->setExecutable(fileName);
+#endif
   DEBUG('x', "AddrSpace created\n");
   // Check if the address space allocation was successful
   if (space == nullptr) {
@@ -990,6 +993,7 @@ void NachOS_Shutdown() {  // System call 25
 
 int NachOS_PAGE_FAULT_HANDLER() {
   stats->numPageFaults++;
+  int a = stats->numPageFaults;
   DEBUG('y', "Page fault handler\n");
   // 1. Get the faulting address
   u_int32_t faultingAddress = machine->ReadRegister(BadVAddrReg);

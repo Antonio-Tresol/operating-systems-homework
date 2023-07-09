@@ -53,6 +53,8 @@ class AddrSpace {
   std::string getExecutable() { return executableFilename; }
   TranslationEntry *getPageTable() { return pageTable; }
   u_int32_t getNumPages() { return numPages; }
+  void setParentId(AddrSpace *parent) { parentId = parent; }
+  AddrSpace *getParentId() { return parentId; }
 #endif
 
  private:
@@ -64,6 +66,7 @@ class AddrSpace {
   // to retrieve the executable file when we need to load a clean page
   // on demand
   std::string executableFilename;
+  AddrSpace *parentId{nullptr};
 #endif
 };
 

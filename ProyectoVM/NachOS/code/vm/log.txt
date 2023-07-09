@@ -1,0 +1,587 @@
+***********before handling****************
+Handling page fault for address 0, vpn 0, space 0x55b164b8d130
+Fault type[1]
+
++++++++++++++++++++PAGEFAULT COUNT: 1+++++++++++++++++++
+
+-MEM SNAPSHOT START-:
+
+Empty Frames:
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-MEM SNAPSHOT END-:
+
+-TLB SNAPSHOT START-
+-----------------
+
+
+-TLB SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+
+Empty Entries:
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+
+Empty Entries:
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+
+**********After handling*****************
+
++++++++++++++++++++PAGEFAULT COUNT: 1+++++++++++++++++++
+
+-MEM SNAPSHOT START-:
+Memory frame 0 := occupied by addressSpaceID 0x55b164b8d130, vpn 0, unmodified, last used 0
+
+Empty Frames:
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-MEM SNAPSHOT END-:
+
+-TLB SNAPSHOT START-
+-----------------
+TLB Entry 0:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 0
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+
+
+-TLB SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 0
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+
+Empty Entries:
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+*******************************************
+***********before handling****************
+Handling page fault for address 512, vpn 4, space 0x55b164b8d130
+Fault type[1]
+
++++++++++++++++++++PAGEFAULT COUNT: 2+++++++++++++++++++
+
+-MEM SNAPSHOT START-:
+Memory frame 0 := occupied by addressSpaceID 0x55b164b8d130, vpn 0, unmodified, last used 1
+
+Empty Frames:
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-MEM SNAPSHOT END-:
+
+-TLB SNAPSHOT START-
+-----------------
+TLB Entry 0:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+
+
+-TLB SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+
+Empty Entries:
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+
+Empty Entries:
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+
+**********After handling*****************
+
++++++++++++++++++++PAGEFAULT COUNT: 2+++++++++++++++++++
+
+-MEM SNAPSHOT START-:
+Memory frame 0 := occupied by addressSpaceID 0x55b164b8d130, vpn 0, unmodified, last used 1
+Memory frame 1 := occupied by addressSpaceID 0x55b164b8d130, vpn 4, unmodified, last used 0
+
+Empty Frames:
+2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-MEM SNAPSHOT END-:
+
+-TLB SNAPSHOT START-
+-----------------
+TLB Entry 0:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+TLB Entry 1:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 0
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+
+
+-TLB SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+1 entry:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 0
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+
+Empty Entries:
+2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+*******************************************
+***********before handling****************
+Handling page fault for address 1644, vpn 12, space 0x55b164b8d130
+Fault type[1]
+
++++++++++++++++++++PAGEFAULT COUNT: 3+++++++++++++++++++
+
+-MEM SNAPSHOT START-:
+Memory frame 0 := occupied by addressSpaceID 0x55b164b8d130, vpn 0, unmodified, last used 1
+Memory frame 1 := occupied by addressSpaceID 0x55b164b8d130, vpn 4, unmodified, last used 3
+
+Empty Frames:
+2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-MEM SNAPSHOT END-:
+
+-TLB SNAPSHOT START-
+-----------------
+TLB Entry 0:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+TLB Entry 1:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 3
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+
+
+-TLB SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+1 entry:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 3
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+
+Empty Entries:
+2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+1 entry:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 3
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+
+Empty Entries:
+2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+
+**********After handling*****************
+
++++++++++++++++++++PAGEFAULT COUNT: 3+++++++++++++++++++
+
+-MEM SNAPSHOT START-:
+Memory frame 0 := occupied by addressSpaceID 0x55b164b8d130, vpn 0, unmodified, last used 1
+Memory frame 1 := occupied by addressSpaceID 0x55b164b8d130, vpn 4, unmodified, last used 3
+Memory frame 2 := occupied by addressSpaceID 0x55b164b8d130, vpn 12, unmodified, last used 0
+
+Empty Frames:
+3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-MEM SNAPSHOT END-:
+
+-TLB SNAPSHOT START-
+-----------------
+TLB Entry 0:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+TLB Entry 1:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 3
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+TLB Entry 2:
+Physical Page: 2
+Virtual Page: 12
+Space: 0x55b164b8d130
+Last Access Count: 0
+Valid: true
+Dirty: false
+TLB Location: 2
+-----------------
+
+
+-TLB SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+1 entry:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 3
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+2 entry:
+Physical Page: 2
+Virtual Page: 12
+Space: 0x55b164b8d130
+Last Access Count: 0
+Valid: true
+Dirty: false
+TLB Location: 2
+-----------------
+
+Empty Entries:
+3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+*******************************************
+***********before handling****************
+Handling page fault for address 496, vpn 3, space 0x55b164b8d130
+Fault type[1]
+
++++++++++++++++++++PAGEFAULT COUNT: 4+++++++++++++++++++
+
+-MEM SNAPSHOT START-:
+Memory frame 0 := occupied by addressSpaceID 0x55b164b8d130, vpn 0, unmodified, last used 1
+Memory frame 1 := occupied by addressSpaceID 0x55b164b8d130, vpn 4, unmodified, last used 9
+Memory frame 2 := occupied by addressSpaceID 0x55b164b8d130, vpn 12, modified, last used 7
+
+Empty Frames:
+3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-MEM SNAPSHOT END-:
+
+-TLB SNAPSHOT START-
+-----------------
+TLB Entry 0:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+TLB Entry 1:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 9
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+TLB Entry 2:
+Physical Page: 2
+Virtual Page: 12
+Space: 0x55b164b8d130
+Last Access Count: 7
+Valid: true
+Dirty: true
+TLB Location: 2
+-----------------
+
+
+-TLB SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+1 entry:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 9
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+2 entry:
+Physical Page: 2
+Virtual Page: 12
+Space: 0x55b164b8d130
+Last Access Count: 7
+Valid: true
+Dirty: true
+TLB Location: 2
+-----------------
+
+Empty Entries:
+3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+1 entry:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 9
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+2 entry:
+Physical Page: 2
+Virtual Page: 12
+Space: 0x55b164b8d130
+Last Access Count: 7
+Valid: true
+Dirty: true
+TLB Location: 2
+-----------------
+
+Empty Entries:
+3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+
+**********After handling*****************
+
++++++++++++++++++++PAGEFAULT COUNT: 4+++++++++++++++++++
+
+-MEM SNAPSHOT START-:
+Memory frame 0 := occupied by addressSpaceID 0x55b164b8d130, vpn 0, unmodified, last used 1
+Memory frame 1 := occupied by addressSpaceID 0x55b164b8d130, vpn 4, unmodified, last used 9
+Memory frame 2 := occupied by addressSpaceID 0x55b164b8d130, vpn 12, modified, last used 7
+Memory frame 3 := occupied by addressSpaceID 0x55b164b8d130, vpn 3, unmodified, last used 0
+
+Empty Frames:
+4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-MEM SNAPSHOT END-:
+
+-TLB SNAPSHOT START-
+-----------------
+TLB Entry 0:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+TLB Entry 1:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 9
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+TLB Entry 2:
+Physical Page: 2
+Virtual Page: 12
+Space: 0x55b164b8d130
+Last Access Count: 7
+Valid: true
+Dirty: true
+TLB Location: 2
+-----------------
+TLB Entry 3:
+Physical Page: 3
+Virtual Page: 3
+Space: 0x55b164b8d130
+Last Access Count: 0
+Valid: true
+Dirty: false
+TLB Location: 3
+-----------------
+
+
+-TLB SNAPSHOT END-
+
+-IPT SNAPSHOT START-
+-----------------
+0 entry:
+Physical Page: 0
+Virtual Page: 0
+Space: 0x55b164b8d130
+Last Access Count: 1
+Valid: true
+Dirty: false
+TLB Location: 0
+-----------------
+1 entry:
+Physical Page: 1
+Virtual Page: 4
+Space: 0x55b164b8d130
+Last Access Count: 9
+Valid: true
+Dirty: false
+TLB Location: 1
+-----------------
+2 entry:
+Physical Page: 2
+Virtual Page: 12
+Space: 0x55b164b8d130
+Last Access Count: 7
+Valid: true
+Dirty: true
+TLB Location: 2
+-----------------
+3 entry:
+Physical Page: 3
+Virtual Page: 3
+Space: 0x55b164b8d130
+Last Access Count: 0
+Valid: true
+Dirty: false
+TLB Location: 3
+-----------------
+
+Empty Entries:
+4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 
+-IPT SNAPSHOT END-
+*******************************************
+Machine halting!
+
+Ticks: total 46, idle 0, system 30, user 16
+Disk I/O: reads 0, writes 0
+Console I/O: reads 0, writes 0
+Paging: faults 4
+Network I/O: packets received 0, sent 0
+
+Cleaning up...
